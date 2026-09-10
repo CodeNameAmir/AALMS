@@ -22,10 +22,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.filled.Delete
 import com.example.myapplication.data.model.LogEntry
 import com.example.myapplication.data.model.LogLevel
-import com.example.myapplication.ui.theme.DarkBg
-import com.example.myapplication.ui.theme.DarkBg2
-import com.example.myapplication.ui.theme.DarkBg3
-import com.example.myapplication.ui.theme.DarkBorder
 import com.example.myapplication.util.FileUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,13 +77,13 @@ fun AddEditLogScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DarkBg,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.LightGray
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
         },
-        containerColor = DarkBg
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -97,19 +93,19 @@ fun AddEditLogScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("MESSAGE", color = Color(0xFF94A3B8), fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+            Text("MESSAGE", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
             OutlinedTextField(
                 value = message,
                 onValueChange = { message = it },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
-                placeholder = { Text("Enter log message…", color = Color(0xFF64748B)) },
+                placeholder = { Text("Enter log message…", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)) },
                 colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = DarkBorder,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedContainerColor = DarkBg3,
-                    focusedContainerColor = DarkBg3,
-                    unfocusedTextColor = Color.White,
-                    focusedTextColor = Color.White,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
                     cursorColor = MaterialTheme.colorScheme.primary
                 ),
                 shape = RoundedCornerShape(12.dp)
@@ -120,7 +116,7 @@ fun AddEditLogScreen(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("LEVEL", color = Color(0xFF94A3B8), fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+                    Text("LEVEL", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
                     Spacer(modifier = Modifier.height(6.dp))
                     var levelMenuExpanded by remember { mutableStateOf(false) }
                     Box {
@@ -128,26 +124,26 @@ fun AddEditLogScreen(
                             onClick = { levelMenuExpanded = true },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(10.dp),
-                            color = DarkBg3,
-                            border = BorderStroke(1.dp, DarkBorder)
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                         ) {
                             Row(
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 11.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(level, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                                Text(level, color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, fontWeight = FontWeight.Medium)
                                 Spacer(modifier = Modifier.weight(1f))
-                                Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = Color(0xFF94A3B8))
+                                Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                         DropdownMenu(
                             expanded = levelMenuExpanded,
                             onDismissRequest = { levelMenuExpanded = false },
-                            modifier = Modifier.background(DarkBg2)
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                         ) {
                             LogLevel.all.forEach { lvl ->
                                 DropdownMenuItem(
-                                    text = { Text(lvl, color = Color.White) },
+                                    text = { Text(lvl, color = MaterialTheme.colorScheme.onSurface) },
                                     onClick = { level = lvl; levelMenuExpanded = false }
                                 )
                             }
@@ -156,7 +152,7 @@ fun AddEditLogScreen(
                 }
 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("CATEGORY", color = Color(0xFF94A3B8), fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+                    Text("CATEGORY", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
                     Spacer(modifier = Modifier.height(6.dp))
                     var categoryMenuExpanded by remember { mutableStateOf(false) }
                     Box {
@@ -164,27 +160,27 @@ fun AddEditLogScreen(
                             onClick = { categoryMenuExpanded = true },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(10.dp),
-                            color = DarkBg3,
-                            border = BorderStroke(1.dp, DarkBorder)
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                         ) {
                             Row(
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 11.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 val currentCat = categories.find { it.id == selectedCategoryId }
-                                Text(currentCat?.name ?: "Select", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                                Text(currentCat?.name ?: "Select", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, fontWeight = FontWeight.Medium)
                                 Spacer(modifier = Modifier.weight(1f))
-                                Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = Color(0xFF94A3B8))
+                                Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                         DropdownMenu(
                             expanded = categoryMenuExpanded,
                             onDismissRequest = { categoryMenuExpanded = false },
-                            modifier = Modifier.background(DarkBg2)
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                         ) {
                             categories.forEach { cat ->
                                 DropdownMenuItem(
-                                    text = { Text(cat.name, color = Color.White) },
+                                    text = { Text(cat.name, color = MaterialTheme.colorScheme.onSurface) },
                                     onClick = { 
                                         selectedCategoryId = cat.id
                                         categoryMenuExpanded = false 
@@ -198,8 +194,8 @@ fun AddEditLogScreen(
 
             Surface(
                 shape = RoundedCornerShape(10.dp),
-                color = DarkBg3,
-                border = BorderStroke(1.dp, DarkBorder),
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
@@ -212,12 +208,12 @@ fun AddEditLogScreen(
                         colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Pin this log to top", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                    Text("Pin this log to top", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, fontWeight = FontWeight.Medium)
                 }
             }
 
             // Attachment Field
-            Text("ATTACHMENT", color = Color(0xFF94A3B8), fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+            Text("ATTACHMENT", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -227,10 +223,13 @@ fun AddEditLogScreen(
                     onClick = { filePicker.launch("*/*") },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(10.dp),
-                    border = BorderStroke(1.dp, DarkBorder),
-                    colors = ButtonDefaults.outlinedButtonColors(containerColor = DarkBg3)
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = MaterialTheme.colorScheme.onSurface
+                    )
                 ) {
-                    Text(if (attachmentPath != null) "Change File" else "Attach File", color = Color.White)
+                    Text(if (attachmentPath != null) "Change File" else "Attach File", color = MaterialTheme.colorScheme.onSurface)
                 }
                 
                 if (attachmentPath != null) {
@@ -251,7 +250,7 @@ fun AddEditLogScreen(
                 ) {
                     Text(
                         text = "File: ${attachmentPath?.substringAfterLast("/")}",
-                        color = Color(0xFF86EFAC),
+                        color = Color(0xFF34D399),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
@@ -280,7 +279,10 @@ fun AddEditLogScreen(
                     .fillMaxWidth()
                     .height(48.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
                 enabled = message.isNotBlank() && selectedCategoryId != 0L
             ) {
                 Text(if (logId == null) "Create Log" else "Save Changes", fontWeight = FontWeight.Bold, fontSize = 14.sp)

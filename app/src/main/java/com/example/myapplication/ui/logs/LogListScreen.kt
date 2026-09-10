@@ -37,11 +37,7 @@ import com.example.myapplication.data.model.Category
 import com.example.myapplication.data.model.DatabaseMode
 import com.example.myapplication.data.model.LogLevel
 import com.example.myapplication.service.LogServerService
-import com.example.myapplication.ui.theme.DarkBg
-import com.example.myapplication.ui.theme.DarkBg2
-import com.example.myapplication.ui.theme.DarkBg3
-import com.example.myapplication.ui.theme.DarkBorder
-import com.example.myapplication.ui.theme.getLogLevelColor
+import com.example.myapplication.ui.theme.*
 import com.example.myapplication.util.ImportExportUtils
 import java.io.File
 import java.text.SimpleDateFormat
@@ -132,7 +128,7 @@ fun LogListScreen(
     if (logToDelete != null) {
         AlertDialog(
             onDismissRequest = { logToDelete = null },
-            title = { Text("Delete Log") },
+            title = { Text("Delete Log", fontWeight = FontWeight.Bold) },
             text = { Text("Are you sure you want to delete this log entry? This action cannot be undone.") },
             confirmButton = {
                 Button(
@@ -140,26 +136,29 @@ fun LogListScreen(
                         logToDelete?.let { viewModel.deleteLog(it) }
                         logToDelete = null
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
+                    )
                 ) {
                     Text("Delete")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { logToDelete = null }) {
-                    Text("Cancel")
+                    Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
-            containerColor = DarkBg2,
-            titleContentColor = Color.White,
-            textContentColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            textContentColor = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 
     if (showDatabaseDialog) {
         AlertDialog(
             onDismissRequest = { showDatabaseDialog = false },
-            containerColor = DarkBg2,
+            containerColor = MaterialTheme.colorScheme.surface,
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
@@ -169,14 +168,14 @@ fun LogListScreen(
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Select Database Source", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text("Select Database Source", color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                     Text(
                         text = "Choose whether to store and query logs in local SQLite or Google Cloud Firestore.",
-                        color = Color.LightGray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp
                     )
 
@@ -188,12 +187,12 @@ fun LogListScreen(
                         },
                         colors = CardDefaults.cardColors(
                             containerColor = if (databaseMode == DatabaseMode.LOCAL)
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                            else DarkBg3
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                            else MaterialTheme.colorScheme.surfaceVariant
                         ),
                         border = BorderStroke(
                             1.5.dp,
-                            if (databaseMode == DatabaseMode.LOCAL) MaterialTheme.colorScheme.primary else DarkBorder
+                            if (databaseMode == DatabaseMode.LOCAL) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
                         ),
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.fillMaxWidth()
@@ -211,8 +210,8 @@ fun LogListScreen(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Column {
-                                Text("Local Database (SQLite)", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
-                                Text("Stored on device (Room) • Offline", fontSize = 11.sp, color = Color.Gray)
+                                Text("Local Database (SQLite)", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
+                                Text("Stored on device (Room) • Offline", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                     }
@@ -225,12 +224,12 @@ fun LogListScreen(
                         },
                         colors = CardDefaults.cardColors(
                             containerColor = if (databaseMode == DatabaseMode.GOOGLE_CLOUD)
-                                Color(0xFF1E3A8A).copy(alpha = 0.35f)
-                            else DarkBg3
+                                Color(0xFF064E3B).copy(alpha = 0.35f)
+                            else MaterialTheme.colorScheme.surfaceVariant
                         ),
                         border = BorderStroke(
                             1.5.dp,
-                            if (databaseMode == DatabaseMode.GOOGLE_CLOUD) Color(0xFF60A5FA) else DarkBorder
+                            if (databaseMode == DatabaseMode.GOOGLE_CLOUD) Color(0xFF10B981) else MaterialTheme.colorScheme.outline
                         ),
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.fillMaxWidth()
@@ -244,20 +243,21 @@ fun LogListScreen(
                                 onClick = {
                                     viewModel.switchDatabaseMode(DatabaseMode.GOOGLE_CLOUD)
                                     showDatabaseDialog = false
-                                }
+                                },
+                                colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF10B981))
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Column {
-                                Text("Google Cloud (Firestore)", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
+                                Text("Google Cloud (Firestore)", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
                                 val desc = if (googleUser != null) "Account: ${googleUser?.email}" else "Real-time Google Cloud Sync"
-                                Text(desc, fontSize = 11.sp, color = Color(0xFF93C5FD))
+                                Text(desc, fontSize = 11.sp, color = if (databaseMode == DatabaseMode.GOOGLE_CLOUD) Color(0xFF34D399) else MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                     }
 
-                    HorizontalDivider(color = DarkBorder)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline)
 
-                    Text("Database Sync Actions:", fontSize = 12.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
+                    Text("Database Sync Actions:", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -270,8 +270,11 @@ fun LogListScreen(
                             },
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(8.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF60A5FA)),
-                            border = BorderStroke(1.dp, Color(0xFF2563EB))
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                contentColor = Color(0xFF34D399)
+                            ),
+                            border = BorderStroke(1.dp, Color(0xFF059669))
                         ) {
                             Text("Local ➔ Cloud", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         }
@@ -283,8 +286,11 @@ fun LogListScreen(
                             },
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(8.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.LightGray),
-                            border = BorderStroke(1.dp, DarkBorder)
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                contentColor = MaterialTheme.colorScheme.primary
+                            ),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
                         ) {
                             Text("Cloud ➔ Local", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         }
@@ -293,7 +299,7 @@ fun LogListScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showDatabaseDialog = false }) {
-                    Text("Done", color = Color.White)
+                    Text("Done", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                 }
             }
         )
@@ -303,80 +309,34 @@ fun LogListScreen(
         topBar = {
             TopAppBar(
                 title = { 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Surface(
-                            modifier = Modifier.size(32.dp),
-                            shape = RoundedCornerShape(8.dp),
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    Icons.Default.Terminal,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(18.dp)
+                    Column {
+                        Text(
+                            "LOG SERVER", 
+                            fontWeight = FontWeight.ExtraBold,
+                            letterSpacing = 0.5.sp,
+                            fontSize = 16.sp
+                        )
+                        if (isServerRunning) {
+                            val ip = LogServerService.getLocalIpAddress() ?: "0.0.0.0"
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(6.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF22C55E))
                                 )
-                            }
-                        }
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Column {
-                            Text(
-                                "LOG SERVER", 
-                                fontWeight = FontWeight.ExtraBold,
-                                letterSpacing = 0.5.sp,
-                                fontSize = 16.sp
-                            )
-                            if (isServerRunning) {
-                                val ip = LogServerService.getLocalIpAddress() ?: "0.0.0.0"
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(6.dp)
-                                            .clip(CircleShape)
-                                            .background(Color(0xFF22C55E))
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text(
-                                        text = "$ip:8080",
-                                        fontSize = 11.sp,
-                                        color = Color(0xFF86EFAC),
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                }
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "$ip:8080",
+                                    fontSize = 11.sp,
+                                    color = Color(0xFF86EFAC),
+                                    fontWeight = FontWeight.SemiBold
+                                )
                             }
                         }
                     }
                 },
                 actions = {
-                    // Database Mode Switcher Chip
-                    Surface(
-                        onClick = { showDatabaseDialog = true },
-                        shape = RoundedCornerShape(12.dp),
-                        color = if (databaseMode == DatabaseMode.GOOGLE_CLOUD) Color(0xFF064E3B).copy(alpha = 0.4f) else DarkBg3,
-                        border = BorderStroke(1.dp, if (databaseMode == DatabaseMode.GOOGLE_CLOUD) Color(0xFF10B981) else DarkBorder),
-                        modifier = Modifier.padding(end = 4.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                        ) {
-                            Icon(
-                                imageVector = if (databaseMode == DatabaseMode.GOOGLE_CLOUD) Icons.Default.CloudDone else Icons.Default.PhoneAndroid,
-                                contentDescription = "Database",
-                                modifier = Modifier.size(14.dp),
-                                tint = if (databaseMode == DatabaseMode.GOOGLE_CLOUD) Color(0xFF34D399) else Color(0xFF94A3B8)
-                            )
-                            Spacer(modifier = Modifier.width(5.dp))
-                            Text(
-                                text = if (databaseMode == DatabaseMode.GOOGLE_CLOUD) "Cloud" else "Local",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (databaseMode == DatabaseMode.GOOGLE_CLOUD) Color(0xFF34D399) else Color(0xFFE2E8F0)
-                            )
-                        }
-                    }
-
                     FilledTonalIconButton(
                         onClick = { toggleServer() },
                         colors = IconButtonDefaults.filledTonalIconButtonColors(
@@ -395,12 +355,12 @@ fun LogListScreen(
                     var menuExpanded by remember { mutableStateOf(false) }
                     Box {
                         IconButton(onClick = { menuExpanded = true }) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "Menu", tint = Color.LightGray)
+                            Icon(Icons.Default.MoreVert, contentDescription = "Menu", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         DropdownMenu(
                             expanded = menuExpanded,
                             onDismissRequest = { menuExpanded = false },
-                            modifier = Modifier.background(DarkBg2)
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                         ) {
                             DropdownMenuItem(
                                 text = { 
@@ -408,11 +368,11 @@ fun LogListScreen(
                                         Icon(
                                             if (databaseMode == DatabaseMode.GOOGLE_CLOUD) Icons.Default.CloudDone else Icons.Default.PhoneAndroid,
                                             contentDescription = null,
-                                            tint = if (databaseMode == DatabaseMode.GOOGLE_CLOUD) Color(0xFF60A5FA) else Color.LightGray,
+                                            tint = if (databaseMode == DatabaseMode.GOOGLE_CLOUD) Color(0xFF60A5FA) else MaterialTheme.colorScheme.onSurfaceVariant,
                                             modifier = Modifier.size(18.dp)
                                         )
                                         Spacer(modifier = Modifier.width(8.dp))
-                                        Text(if (databaseMode == DatabaseMode.GOOGLE_CLOUD) "Database: Google Cloud" else "Database: Local")
+                                        Text(if (databaseMode == DatabaseMode.GOOGLE_CLOUD) "Database: Google Cloud" else "Database: Local", color = MaterialTheme.colorScheme.onSurface)
                                     }
                                 },
                                 onClick = { 
@@ -420,47 +380,47 @@ fun LogListScreen(
                                     showDatabaseDialog = true
                                 }
                             )
-                            HorizontalDivider(color = DarkBorder)
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                             DropdownMenuItem(
-                                text = { Text("Statistics") },
+                                text = { Text("Statistics", color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = { 
                                     menuExpanded = false
                                     onStatsClick()
                                 }
                             )
-                            HorizontalDivider(color = DarkBorder)
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                             DropdownMenuItem(
-                                text = { Text(if (isServerRunning) "Stop Server" else "Start Server") },
+                                text = { Text(if (isServerRunning) "Stop Server" else "Start Server", color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = { 
                                     menuExpanded = false
                                     toggleServer()
                                 }
                             )
-                            HorizontalDivider(color = DarkBorder)
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                             DropdownMenuItem(
-                                text = { Text("Add Category") },
+                                text = { Text("Add Category", color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = { 
                                     menuExpanded = false 
                                     showAddCategoryDialog = true
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Delete Category") },
+                                text = { Text("Delete Category", color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = { 
                                     menuExpanded = false
                                     showDeleteCategoryDialog = true
                                 }
                             )
-                            HorizontalDivider(color = DarkBorder)
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                             DropdownMenuItem(
-                                text = { Text("Import JSON") },
+                                text = { Text("Import JSON", color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = { 
                                     menuExpanded = false
                                     importJsonLauncher.launch(arrayOf("application/json", "application/octet-stream", "*/*"))
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Import CSV") },
+                                text = { Text("Import CSV", color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = { 
                                     menuExpanded = false
                                     importCsvLauncher.launch(arrayOf(
@@ -474,22 +434,22 @@ fun LogListScreen(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Export JSON") },
+                                text = { Text("Export JSON", color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = { 
                                     menuExpanded = false
                                     exportJsonLauncher.launch("logs_${System.currentTimeMillis()}.json")
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Export CSV") },
+                                text = { Text("Export CSV", color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = { 
                                     menuExpanded = false
                                     exportCsvLauncher.launch("logs_${System.currentTimeMillis()}.csv")
                                 }
                             )
-                            HorizontalDivider(color = DarkBorder)
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                             DropdownMenuItem(
-                                text = { Text("Logout") },
+                                text = { Text("Logout", color = MaterialTheme.colorScheme.error) },
                                 onClick = { 
                                     menuExpanded = false
                                     viewModel.logout()
@@ -499,92 +459,28 @@ fun LogListScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DarkBg,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.LightGray
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddLogClick,
-                containerColor = MaterialTheme.colorScheme.primary
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Log")
             }
         },
-        containerColor = DarkBg
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            // Active Database Banner
-            Surface(
-                color = if (databaseMode == DatabaseMode.GOOGLE_CLOUD) Color(0xFF064E3B).copy(alpha = 0.25f) else DarkBg2,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showDatabaseDialog = true }
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 9.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Surface(
-                            shape = CircleShape,
-                            color = if (databaseMode == DatabaseMode.GOOGLE_CLOUD) Color(0xFF10B981).copy(alpha = 0.2f) else Color(0xFF3B82F6).copy(alpha = 0.2f),
-                            modifier = Modifier.size(24.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = if (databaseMode == DatabaseMode.GOOGLE_CLOUD) Icons.Default.CloudDone else Icons.Default.PhoneAndroid,
-                                    contentDescription = null,
-                                    tint = if (databaseMode == DatabaseMode.GOOGLE_CLOUD) Color(0xFF34D399) else Color(0xFF60A5FA),
-                                    modifier = Modifier.size(13.dp)
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Column {
-                            Text(
-                                text = if (databaseMode == DatabaseMode.GOOGLE_CLOUD)
-                                    "Firestore Cloud Database"
-                                else
-                                    "Local SQLite Database",
-                                fontSize = 12.sp,
-                                color = Color.White,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Text(
-                                text = if (databaseMode == DatabaseMode.GOOGLE_CLOUD)
-                                    (googleUser?.email ?: "Synced with Google Cloud")
-                                else
-                                    "Offline storage on this device",
-                                fontSize = 10.sp,
-                                color = Color(0xFF94A3B8)
-                            )
-                        }
-                    }
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
-                    ) {
-                        Text(
-                            text = "Switch",
-                            fontSize = 11.sp,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                        )
-                    }
-                }
-            }
-            HorizontalDivider(color = DarkBorder, thickness = 0.5.dp)
-
             FilterSection(
                 searchQuery = searchQuery,
                 onSearchChange = viewModel::onSearchQueryChanged,
@@ -614,14 +510,14 @@ fun LogListScreen(
                         Surface(
                             modifier = Modifier.size(64.dp),
                             shape = CircleShape,
-                            color = DarkBg2,
-                            border = BorderStroke(1.dp, DarkBorder)
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     imageVector = Icons.Default.FilterListOff,
                                     contentDescription = null,
-                                    tint = Color(0xFF64748B),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(28.dp)
                                 )
                             }
@@ -633,7 +529,7 @@ fun LogListScreen(
                             else
                                 "No logs in this database yet",
                             fontWeight = FontWeight.Bold,
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 15.sp
                         )
                         Spacer(modifier = Modifier.height(4.dp))
@@ -642,7 +538,7 @@ fun LogListScreen(
                                 "Try resetting your search query or level filters"
                             else
                                 "Tap the + button below or send logs via the web server",
-                            color = Color(0xFF94A3B8),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 12.sp,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
@@ -702,7 +598,7 @@ fun LogListScreen(
                                 }
                             }
                         )
-                        HorizontalDivider(color = DarkBorder, thickness = 0.5.dp)
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f), thickness = 0.5.dp)
                     }
                 }
             }
@@ -747,7 +643,7 @@ fun FilterSection(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(DarkBg2)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 14.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
@@ -755,13 +651,13 @@ fun FilterSection(
         OutlinedTextField(
             value = searchQuery,
             onValueChange = onSearchChange,
-            placeholder = { Text("Search logs by message…", fontSize = 13.sp, color = Color(0xFF64748B)) },
+            placeholder = { Text("Search logs by message…", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)) },
             modifier = Modifier.fillMaxWidth(),
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color(0xFF94A3B8), modifier = Modifier.size(18.dp)) },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp)) },
             trailingIcon = {
                 if (searchQuery.isNotEmpty()) {
                     IconButton(onClick = { onSearchChange("") }, modifier = Modifier.size(28.dp)) {
-                        Icon(Icons.Default.Clear, contentDescription = "Clear", tint = Color(0xFF94A3B8), modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.Clear, contentDescription = "Clear", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
                     }
                 }
             },
@@ -769,13 +665,13 @@ fun FilterSection(
             shape = RoundedCornerShape(10.dp),
             textStyle = LocalTextStyle.current.copy(fontSize = 13.sp),
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = DarkBg3,
-                focusedContainerColor = DarkBg3,
-                unfocusedBorderColor = DarkBorder,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                 cursorColor = MaterialTheme.colorScheme.primary,
-                unfocusedTextColor = Color.White,
-                focusedTextColor = Color.White
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface
             )
         )
 
@@ -791,8 +687,8 @@ fun FilterSection(
                     onClick = { levelMenuExpanded = true },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
-                    color = DarkBg3,
-                    border = BorderStroke(1.dp, if (selectedLevel.isNotEmpty()) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else DarkBorder)
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    border = BorderStroke(1.dp, if (selectedLevel.isNotEmpty()) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outline)
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
@@ -803,39 +699,39 @@ fun FilterSection(
                             Icon(
                                 Icons.Default.Tune,
                                 contentDescription = null,
-                                tint = if (selectedLevel.isEmpty()) Color(0xFF64748B) else MaterialTheme.colorScheme.primary,
+                                tint = if (selectedLevel.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f) else MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(14.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = if (selectedLevel.isEmpty()) "All levels" else selectedLevel,
                                 fontSize = 12.sp,
-                                color = if (selectedLevel.isEmpty()) Color(0xFF94A3B8) else Color.White,
+                                color = if (selectedLevel.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
                                 fontWeight = if (selectedLevel.isEmpty()) FontWeight.Normal else FontWeight.SemiBold,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
-                        Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = Color(0xFF94A3B8), modifier = Modifier.size(18.dp))
+                        Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
                     }
                 }
                 DropdownMenu(
                     expanded = levelMenuExpanded,
                     onDismissRequest = { levelMenuExpanded = false },
-                    modifier = Modifier.background(DarkBg2)
+                    modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                 ) {
                     DropdownMenuItem(
-                        text = { Text("All levels") },
+                        text = { Text("All levels", color = MaterialTheme.colorScheme.onSurface) },
                         onClick = { onLevelChange(""); levelMenuExpanded = false }
                     )
                     LogLevel.all.forEach { level ->
-                        val col = getLogLevelColor(level)
+                        val col = rememberLogLevelColor(level)
                         DropdownMenuItem(
                             text = { 
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(col))
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text(level, color = Color.White)
+                                    Text(level, color = MaterialTheme.colorScheme.onSurface)
                                 }
                             },
                             onClick = { onLevelChange(level); levelMenuExpanded = false }
@@ -851,8 +747,8 @@ fun FilterSection(
                     onClick = { categoryMenuExpanded = true },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
-                    color = DarkBg3,
-                    border = BorderStroke(1.dp, if (selectedCategoryId != 0L) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else DarkBorder)
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    border = BorderStroke(1.dp, if (selectedCategoryId != 0L) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outline)
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
@@ -865,29 +761,29 @@ fun FilterSection(
                             Icon(
                                 Icons.Default.Category,
                                 contentDescription = null,
-                                tint = if (selectedCategoryId == 0L) Color(0xFF64748B) else MaterialTheme.colorScheme.primary,
+                                tint = if (selectedCategoryId == 0L) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f) else MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(14.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = catName,
                                 fontSize = 12.sp,
-                                color = if (selectedCategoryId == 0L) Color(0xFF94A3B8) else Color.White,
+                                color = if (selectedCategoryId == 0L) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
                                 fontWeight = if (selectedCategoryId == 0L) FontWeight.Normal else FontWeight.SemiBold,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
-                        Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = Color(0xFF94A3B8), modifier = Modifier.size(18.dp))
+                        Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
                     }
                 }
                 DropdownMenu(
                     expanded = categoryMenuExpanded,
                     onDismissRequest = { categoryMenuExpanded = false },
-                    modifier = Modifier.background(DarkBg2)
+                    modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                 ) {
                     DropdownMenuItem(
-                        text = { Text("All categories") },
+                        text = { Text("All categories", color = MaterialTheme.colorScheme.onSurface) },
                         onClick = { onCategoryChange(0L); categoryMenuExpanded = false }
                     )
                     categories.forEach { category ->
@@ -896,7 +792,7 @@ fun FilterSection(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(parseColor(category.color)))
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text(category.name, color = Color.White)
+                                    Text(category.name, color = MaterialTheme.colorScheme.onSurface)
                                 }
                             },
                             onClick = { onCategoryChange(category.id); categoryMenuExpanded = false }
@@ -926,18 +822,18 @@ fun FilterSection(
                             Icons.Default.PushPin,
                             contentDescription = null,
                             modifier = Modifier.size(12.dp),
-                            tint = if (filterPinned) Color(0xFFFACC15) else Color(0xFF94A3B8)
+                            tint = if (filterPinned) Color(0xFFFACC15) else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
                     shape = RoundedCornerShape(8.dp),
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = Color(0xFF713F12).copy(alpha = 0.35f),
                         selectedLabelColor = Color(0xFFFDE047),
-                        containerColor = DarkBg3,
-                        labelColor = Color(0xFF94A3B8)
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     border = FilterChipDefaults.filterChipBorder(
-                        borderColor = DarkBorder,
+                        borderColor = MaterialTheme.colorScheme.outline,
                         selectedBorderColor = Color(0xFFEAB308).copy(alpha = 0.6f),
                         enabled = true,
                         selected = filterPinned
@@ -954,19 +850,19 @@ fun FilterSection(
                             Icons.Default.AttachFile,
                             contentDescription = null,
                             modifier = Modifier.size(12.dp),
-                            tint = if (filterHasFile) Color(0xFF60A5FA) else Color(0xFF94A3B8)
+                            tint = if (filterHasFile) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
                     shape = RoundedCornerShape(8.dp),
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = Color(0xFF1E3A8A).copy(alpha = 0.35f),
-                        selectedLabelColor = Color(0xFF93C5FD),
-                        containerColor = DarkBg3,
-                        labelColor = Color(0xFF94A3B8)
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     border = FilterChipDefaults.filterChipBorder(
-                        borderColor = DarkBorder,
-                        selectedBorderColor = Color(0xFF3B82F6).copy(alpha = 0.6f),
+                        borderColor = MaterialTheme.colorScheme.outline,
+                        selectedBorderColor = MaterialTheme.colorScheme.primary,
                         enabled = true,
                         selected = filterHasFile
                     )
@@ -979,9 +875,9 @@ fun FilterSection(
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
                     modifier = Modifier.height(28.dp)
                 ) {
-                    Icon(Icons.Default.FilterAltOff, contentDescription = null, modifier = Modifier.size(13.dp), tint = Color(0xFFEF4444))
+                    Icon(Icons.Default.FilterAltOff, contentDescription = null, modifier = Modifier.size(13.dp), tint = MaterialTheme.colorScheme.error)
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Reset", fontSize = 11.sp, color = Color(0xFFEF4444), fontWeight = FontWeight.Bold)
+                    Text("Reset", fontSize = 11.sp, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -998,7 +894,7 @@ fun LogItem(
     onDownloadClick: (String) -> Unit
 ) {
     val log = logWithCat.log
-    val levelColor = getLogLevelColor(log.level)
+    val levelColor = rememberLogLevelColor(log.level)
     val catColor = parseColor(logWithCat.categoryColor)
     val context = LocalContext.current
     
@@ -1008,9 +904,9 @@ fun LogItem(
             .padding(horizontal = 12.dp, vertical = 5.dp)
             .clickable(onClick = onLogClick),
         shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, if (log.pinned) Color(0xFFEAB308).copy(alpha = 0.4f) else DarkBorder),
+        border = BorderStroke(1.dp, if (log.pinned) Color(0xFFEAB308).copy(alpha = 0.5f) else MaterialTheme.colorScheme.outline),
         colors = CardDefaults.cardColors(
-            containerColor = if (log.pinned) Color(0xFF1E1C11) else DarkBg2
+            containerColor = if (log.pinned) Color(0xFF1E1C11) else MaterialTheme.colorScheme.surface
         )
     ) {
         Row(
@@ -1077,32 +973,32 @@ fun LogItem(
                             onClick = { menuExpanded = true },
                             modifier = Modifier.size(24.dp)
                         ) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "Actions", tint = Color(0xFF94A3B8), modifier = Modifier.size(18.dp))
+                            Icon(Icons.Default.MoreVert, contentDescription = "Actions", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
                         }
                         DropdownMenu(
                             expanded = menuExpanded,
                             onDismissRequest = { menuExpanded = false },
-                            modifier = Modifier.background(DarkBg2)
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                         ) {
                             DropdownMenuItem(
-                                text = { Text(if (log.pinned) "Unpin" else "Pin") },
-                                leadingIcon = { Icon(Icons.Default.PushPin, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                                text = { Text(if (log.pinned) "Unpin" else "Pin", color = MaterialTheme.colorScheme.onSurface) },
+                                leadingIcon = { Icon(Icons.Default.PushPin, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                                 onClick = { 
                                     onPinClick()
                                     menuExpanded = false 
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Edit") },
-                                leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                                text = { Text("Edit", color = MaterialTheme.colorScheme.onSurface) },
+                                leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                                 onClick = { 
                                     onEditClick()
                                     menuExpanded = false 
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Copy") },
-                                leadingIcon = { Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                                text = { Text("Copy", color = MaterialTheme.colorScheme.onSurface) },
+                                leadingIcon = { Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                                 onClick = { 
                                     val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                                     val clip = android.content.ClipData.newPlainText("Log Message", log.message)
@@ -1111,10 +1007,10 @@ fun LogItem(
                                     menuExpanded = false 
                                 }
                             )
-                            HorizontalDivider(color = DarkBorder)
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                             DropdownMenuItem(
-                                text = { Text("Delete", color = Color(0xFFEF4444)) },
-                                leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = Color(0xFFEF4444), modifier = Modifier.size(18.dp)) },
+                                text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
+                                leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp)) },
                                 onClick = { 
                                     onDeleteClick()
                                     menuExpanded = false 
@@ -1128,10 +1024,10 @@ fun LogItem(
 
                 // Message Area
                 Surface(
-                    color = DarkBg3,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.fillMaxWidth(),
-                    border = BorderStroke(1.dp, DarkBorder.copy(alpha = 0.6f))
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                 ) {
                     Column(modifier = Modifier.padding(10.dp)) {
                         Row(verticalAlignment = Alignment.Top) {
@@ -1146,7 +1042,7 @@ fun LogItem(
                             }
                             Text(
                                 text = log.message,
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontSize = 13.5.sp,
                                 lineHeight = 19.sp,
                                 maxLines = 4,
@@ -1167,17 +1063,17 @@ fun LogItem(
                     if (log.attachmentPath != null) {
                         Surface(
                             shape = RoundedCornerShape(6.dp),
-                            color = Color(0xFF3B82F6).copy(alpha = 0.12f),
-                            border = BorderStroke(0.5.dp, Color(0xFF3B82F6).copy(alpha = 0.3f)),
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)),
                             modifier = Modifier.clickable { onDownloadClick(log.attachmentPath) }
                         ) {
                             Row(
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Default.AttachFile, contentDescription = null, tint = Color(0xFF60A5FA), modifier = Modifier.size(12.dp))
+                                Icon(Icons.Default.AttachFile, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(12.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Attachment", color = Color(0xFF93C5FD), fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                                Text("Attachment", color = MaterialTheme.colorScheme.onPrimaryContainer, fontSize = 11.sp, fontWeight = FontWeight.Medium)
                             }
                         }
                     } else {
@@ -1186,7 +1082,7 @@ fun LogItem(
 
                     Text(
                         text = fmtTimeRelative(log.createdAt),
-                        color = Color(0xFF94A3B8),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 11.sp
                     )
                 }
@@ -1224,23 +1120,39 @@ fun AddCategoryDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("New Category") },
+        title = { Text("New Category", fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("Category Name") },
-                    singleLine = true
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface
+                    )
                 )
                 OutlinedTextField(
                     value = color,
                     onValueChange = { color = it },
                     label = { Text("Color (Hex)") },
-                    singleLine = true
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface
+                    )
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Preview: ", fontSize = 12.sp)
+                    Text("Preview: ", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Box(modifier = Modifier.size(24.dp).clip(CircleShape).background(parseColor(color)))
                 }
             }
@@ -1248,19 +1160,23 @@ fun AddCategoryDialog(
         confirmButton = {
             Button(
                 onClick = { onConfirm(name, color) },
-                enabled = name.isNotBlank() && color.startsWith("#")
+                enabled = name.isNotBlank() && color.startsWith("#"),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
             ) {
                 Text("Add")
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
-        containerColor = DarkBg2,
-        titleContentColor = Color.White,
-        textContentColor = Color.White
+        containerColor = MaterialTheme.colorScheme.surface,
+        titleContentColor = MaterialTheme.colorScheme.onSurface,
+        textContentColor = MaterialTheme.colorScheme.onSurface
     )
 }
 
@@ -1274,27 +1190,29 @@ fun DeleteCategoryDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Delete Category") },
+        title = { Text("Delete Category", fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Select a category to delete. Warning: Logs with this category may become inaccessible.")
+                Text("Select a category to delete. Warning: Logs with this category may become inaccessible.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 
                 var expanded by remember { mutableStateOf(false) }
                 Box {
                     OutlinedButton(
                         onClick = { expanded = true },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
                     ) {
                         Text(selectedCategory?.name ?: "Select Category")
                     }
                     DropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false },
-                        modifier = Modifier.background(DarkBg2)
+                        modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                     ) {
                         categories.filter { it.userId != 0L }.forEach { cat ->
                             DropdownMenuItem(
-                                text = { Text(cat.name) },
+                                text = { Text(cat.name, color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = {
                                     selectedCategory = cat
                                     expanded = false
@@ -1309,19 +1227,22 @@ fun DeleteCategoryDialog(
             Button(
                 onClick = { selectedCategory?.let { onConfirm(it) } },
                 enabled = selectedCategory != null,
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError
+                )
             ) {
                 Text("Delete")
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
-        containerColor = DarkBg2,
-        titleContentColor = Color.White,
-        textContentColor = Color.White
+        containerColor = MaterialTheme.colorScheme.surface,
+        titleContentColor = MaterialTheme.colorScheme.onSurface,
+        textContentColor = MaterialTheme.colorScheme.onSurfaceVariant
     )
 }
 

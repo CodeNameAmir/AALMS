@@ -45,8 +45,8 @@ fun StatsScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Surface(
                             shape = RoundedCornerShape(6.dp),
-                            color = if (databaseMode == com.example.myapplication.data.model.DatabaseMode.GOOGLE_CLOUD) Color(0xFF10B981).copy(alpha = 0.15f) else Color(0xFF3B82F6).copy(alpha = 0.15f),
-                            border = BorderStroke(1.dp, if (databaseMode == com.example.myapplication.data.model.DatabaseMode.GOOGLE_CLOUD) Color(0xFF10B981).copy(alpha = 0.3f) else Color(0xFF3B82F6).copy(alpha = 0.3f))
+                            color = if (databaseMode == com.example.myapplication.data.model.DatabaseMode.GOOGLE_CLOUD) Color(0xFF10B981).copy(alpha = 0.15f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                            border = BorderStroke(1.dp, if (databaseMode == com.example.myapplication.data.model.DatabaseMode.GOOGLE_CLOUD) Color(0xFF10B981).copy(alpha = 0.3f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
                         ) {
                             Text(
                                 text = if (databaseMode == com.example.myapplication.data.model.DatabaseMode.GOOGLE_CLOUD) 
@@ -58,7 +58,7 @@ fun StatsScreen(
                                 color = if (databaseMode == com.example.myapplication.data.model.DatabaseMode.GOOGLE_CLOUD) 
                                     Color(0xFF34D399) 
                                 else 
-                                    Color(0xFF60A5FA),
+                                    MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
                             )
                         }
@@ -70,13 +70,13 @@ fun StatsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DarkBg,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.LightGray
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
         },
-        containerColor = DarkBg
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -95,8 +95,8 @@ fun StatsScreen(
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 val errorCount = levelCounts.find { it.level == "ERROR" }?.count ?: 0
                 val critCount = levelCounts.find { it.level == "CRITICAL" }?.count ?: 0
-                StatCard("Errors", errorCount.toString(), Modifier.weight(1f), color = ColorError)
-                StatCard("Critical", critCount.toString(), Modifier.weight(1f), color = ColorCritical)
+                StatCard("Errors", errorCount.toString(), Modifier.weight(1f), color = rememberLogLevelColor("ERROR"))
+                StatCard("Critical", critCount.toString(), Modifier.weight(1f), color = rememberLogLevelColor("CRITICAL"))
             }
 
             // Level Stats
@@ -121,26 +121,27 @@ fun StatsScreen(
 }
 
 @Composable
-fun StatCard(label: String, value: String, modifier: Modifier = Modifier, color: Color = Color.White) {
+fun StatCard(label: String, value: String, modifier: Modifier = Modifier, color: Color = Color.Unspecified) {
+    val displayColor = if (color == Color.Unspecified) MaterialTheme.colorScheme.onSurface else color
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(14.dp),
-        border = BorderStroke(1.dp, DarkBorder),
-        colors = CardDefaults.cardColors(containerColor = DarkBg2)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
                 text = label.uppercase(),
-                color = Color(0xFF94A3B8),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 0.6.sp
             )
             Text(
                 text = value,
-                color = color,
+                color = displayColor,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.ExtraBold,
                 modifier = Modifier.padding(top = 4.dp)
@@ -154,15 +155,15 @@ fun ChartCard(title: String, content: @Composable ColumnScope.() -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
-        border = BorderStroke(1.dp, DarkBorder),
-        colors = CardDefaults.cardColors(containerColor = DarkBg2)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
                 text = title.uppercase(),
-                color = Color(0xFF94A3B8),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 0.6.sp,
@@ -176,16 +177,16 @@ fun ChartCard(title: String, content: @Composable ColumnScope.() -> Unit) {
 @Composable
 fun LevelStatRow(level: String, count: Int, total: Int) {
     val progress = if (total > 0) count.toFloat() / total else 0f
-    val color = getLogLevelColor(level)
+    val color = rememberLogLevelColor(level)
     
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(color))
             Spacer(modifier = Modifier.width(8.dp))
-            Text(level, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.width(80.dp))
-            Text(count.toString(), color = Color(0xFF94A3B8), fontSize = 12.sp)
+            Text(level, color = MaterialTheme.colorScheme.onSurface, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.width(80.dp))
+            Text(count.toString(), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
             Spacer(modifier = Modifier.weight(1f))
-            Text("${(progress * 100).toInt()}%", color = Color(0xFF94A3B8), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text("${(progress * 100).toInt()}%", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(modifier = Modifier.height(6.dp))
         LinearProgressIndicator(
@@ -195,7 +196,7 @@ fun LevelStatRow(level: String, count: Int, total: Int) {
                 .height(6.dp)
                 .clip(CircleShape),
             color = color,
-            trackColor = DarkBg3
+            trackColor = MaterialTheme.colorScheme.surfaceVariant
         )
     }
 }
@@ -209,10 +210,10 @@ fun CategoryStatRow(cc: CategoryCount, total: Int) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(color))
             Spacer(modifier = Modifier.width(8.dp))
-            Text(cc.categoryName, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.width(80.dp), overflow = TextOverflow.Ellipsis, maxLines = 1)
-            Text(cc.count.toString(), color = Color(0xFF94A3B8), fontSize = 12.sp)
+            Text(cc.categoryName, color = MaterialTheme.colorScheme.onSurface, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.width(80.dp), overflow = TextOverflow.Ellipsis, maxLines = 1)
+            Text(cc.count.toString(), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
             Spacer(modifier = Modifier.weight(1f))
-            Text("${(progress * 100).toInt()}%", color = Color(0xFF94A3B8), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text("${(progress * 100).toInt()}%", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(modifier = Modifier.height(6.dp))
         LinearProgressIndicator(
@@ -222,7 +223,7 @@ fun CategoryStatRow(cc: CategoryCount, total: Int) {
                 .height(6.dp)
                 .clip(CircleShape),
             color = color,
-            trackColor = DarkBg3
+            trackColor = MaterialTheme.colorScheme.surfaceVariant
         )
     }
 }

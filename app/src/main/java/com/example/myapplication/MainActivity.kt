@@ -52,10 +52,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MyApplicationTheme(darkTheme = true) {
+            MyApplicationTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = com.example.myapplication.ui.theme.DarkBg
+                    color = MaterialTheme.colorScheme.background
                 ) {
                     LogManagerApp(logViewModel, statsViewModel, authViewModel)
                 }
@@ -135,7 +135,8 @@ fun LogManagerApp(
         if (loading) {
             Dialog(onDismissRequest = {}) {
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = com.example.myapplication.ui.theme.DarkBg2),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                 ) {
                     Column(
@@ -144,7 +145,11 @@ fun LogManagerApp(
                     ) {
                         CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text("Syncing Data...", color = androidx.compose.ui.graphics.Color.White)
+                        Text(
+                            "Syncing Data...",
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+                        )
                     }
                 }
             }

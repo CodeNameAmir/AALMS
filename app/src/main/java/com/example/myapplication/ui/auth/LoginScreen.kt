@@ -31,9 +31,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.data.model.DatabaseMode
-import com.example.myapplication.ui.theme.DarkBg2
-import com.example.myapplication.ui.theme.DarkBg3
-import com.example.myapplication.ui.theme.DarkBorder
+import com.example.myapplication.ui.theme.*
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
@@ -119,14 +117,14 @@ fun LoginScreen(
 
         Text(
             text = if (isRegister) "Create Account" else "Log Server Pro",
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onBackground,
             fontSize = 26.sp,
             fontWeight = FontWeight.ExtraBold,
             letterSpacing = (-0.5).sp
         )
         Text(
             text = "High-performance logging & cross-device inspection",
-            color = Color(0xFF94A3B8),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 13.sp,
             modifier = Modifier.padding(top = 4.dp, bottom = 22.dp)
         )
@@ -134,8 +132,8 @@ fun LoginScreen(
         // Database Mode Choice - Elegant Segmented Card
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = DarkBg2),
-            border = BorderStroke(1.dp, DarkBorder),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
@@ -148,18 +146,18 @@ fun LoginScreen(
                         text = "STORAGE ENGINE",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF94A3B8),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = 0.8.sp
                     )
                     Surface(
                         shape = RoundedCornerShape(999.dp),
-                        color = if (currentDbMode == DatabaseMode.GOOGLE_CLOUD) Color(0xFF10B981).copy(alpha = 0.15f) else Color(0xFF3B82F6).copy(alpha = 0.15f)
+                        color = if (currentDbMode == DatabaseMode.GOOGLE_CLOUD) Color(0xFF10B981).copy(alpha = 0.15f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                     ) {
                         Text(
                             text = if (currentDbMode == DatabaseMode.GOOGLE_CLOUD) "Cloud Active" else "Offline Ready",
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (currentDbMode == DatabaseMode.GOOGLE_CLOUD) Color(0xFF34D399) else Color(0xFF60A5FA),
+                            color = if (currentDbMode == DatabaseMode.GOOGLE_CLOUD) Color(0xFF34D399) else MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
                         )
                     }
@@ -177,10 +175,10 @@ fun LoginScreen(
                         onClick = { viewModel.setDatabaseMode(DatabaseMode.LOCAL) },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
-                        color = if (isLocal) Color(0xFF1E293B) else DarkBg3,
+                        color = if (isLocal) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f) else MaterialTheme.colorScheme.surfaceVariant,
                         border = BorderStroke(
                             if (isLocal) 1.5.dp else 1.dp,
-                            if (isLocal) Color(0xFF60A5FA) else DarkBorder
+                            if (isLocal) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
                         )
                     ) {
                         Row(
@@ -192,7 +190,7 @@ fun LoginScreen(
                                 imageVector = Icons.Default.PhoneAndroid,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp),
-                                tint = if (isLocal) Color(0xFF60A5FA) else Color.Gray
+                                tint = if (isLocal) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Column {
@@ -200,9 +198,9 @@ fun LoginScreen(
                                     text = "Local SQLite",
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = if (isLocal) Color.White else Color(0xFF94A3B8)
+                                    color = if (isLocal) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-                                Text("Offline", fontSize = 10.sp, color = Color.Gray)
+                                Text("Offline", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f))
                             }
                         }
                     }
@@ -213,10 +211,10 @@ fun LoginScreen(
                         onClick = { viewModel.setDatabaseMode(DatabaseMode.GOOGLE_CLOUD) },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
-                        color = if (isCloud) Color(0xFF064E3B).copy(alpha = 0.35f) else DarkBg3,
+                        color = if (isCloud) Color(0xFF10B981).copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant,
                         border = BorderStroke(
                             if (isCloud) 1.5.dp else 1.dp,
-                            if (isCloud) Color(0xFF10B981) else DarkBorder
+                            if (isCloud) Color(0xFF10B981) else MaterialTheme.colorScheme.outline
                         )
                     ) {
                         Row(
@@ -228,7 +226,7 @@ fun LoginScreen(
                                 imageVector = Icons.Default.CloudDone,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp),
-                                tint = if (isCloud) Color(0xFF34D399) else Color.Gray
+                                tint = if (isCloud) Color(0xFF34D399) else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Column {
@@ -236,9 +234,9 @@ fun LoginScreen(
                                     text = "Firestore",
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = if (isCloud) Color.White else Color(0xFF94A3B8)
+                                    color = if (isCloud) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-                                Text("Cloud Sync", fontSize = 10.sp, color = Color.Gray)
+                                Text("Cloud Sync", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f))
                             }
                         }
                     }
@@ -262,10 +260,11 @@ fun LoginScreen(
                 .height(50.dp),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color.White,
-                contentColor = Color(0xFF1E293B)
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface
             ),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            elevation = ButtonDefaults.buttonElevation(defaultElevation = 1.dp),
             enabled = !loading
         ) {
             Row(
@@ -291,7 +290,7 @@ fun LoginScreen(
                     text = "Continue with Google",
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,
-                    color = Color(0xFF1E293B)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -303,16 +302,16 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            HorizontalDivider(modifier = Modifier.weight(1f), color = DarkBorder)
+            HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outline)
             Text(
                 text = "OR SIGN IN WITH USERNAME",
-                color = Color(0xFF64748B),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 0.5.sp,
                 modifier = Modifier.padding(horizontal = 12.dp)
             )
-            HorizontalDivider(modifier = Modifier.weight(1f), color = DarkBorder)
+            HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outline)
         }
 
         Spacer(modifier = Modifier.height(18.dp))
@@ -325,10 +324,14 @@ fun LoginScreen(
             singleLine = true,
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = DarkBorder,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedContainerColor = DarkBg2,
-                focusedContainerColor = DarkBg2,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                focusedLabelColor = MaterialTheme.colorScheme.primary,
                 cursorColor = MaterialTheme.colorScheme.primary
             )
         )
@@ -348,31 +351,35 @@ fun LoginScreen(
                     Icon(
                         if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
                         contentDescription = null,
-                        tint = Color(0xFF94A3B8)
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             },
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = DarkBorder,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedContainerColor = DarkBg2,
-                focusedContainerColor = DarkBg2,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                focusedLabelColor = MaterialTheme.colorScheme.primary,
                 cursorColor = MaterialTheme.colorScheme.primary
             )
         )
 
         if (error != null) {
             Surface(
-                color = Color(0xFFEF4444).copy(alpha = 0.15f),
+                color = MaterialTheme.colorScheme.errorContainer,
                 shape = RoundedCornerShape(8.dp),
-                border = BorderStroke(1.dp, Color(0xFFEF4444).copy(alpha = 0.3f)),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.4f)),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 10.dp)
             ) {
                 Text(
                     text = error!!,
-                    color = Color(0xFFFCA5A5),
+                    color = MaterialTheme.colorScheme.onErrorContainer,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                 )
@@ -393,11 +400,14 @@ fun LoginScreen(
                 .fillMaxWidth()
                 .height(48.dp),
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ),
             enabled = username.isNotBlank() && password.length >= 4 && !loading
         ) {
             if (loading) {
-                CircularProgressIndicator(modifier = Modifier.size(22.dp), color = Color.White)
+                CircularProgressIndicator(modifier = Modifier.size(22.dp), color = MaterialTheme.colorScheme.onPrimary)
             } else {
                 Text(
                     if (isRegister) "Create Account" else "Sign In",
@@ -425,19 +435,19 @@ fun LoginScreen(
     if (showGoogleDialog) {
         AlertDialog(
             onDismissRequest = { showGoogleDialog = false },
-            containerColor = DarkBg2,
+            containerColor = MaterialTheme.colorScheme.surface,
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Cloud, contentDescription = null, tint = Color(0xFF4285F4))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Sign in with Google", color = Color.White, fontSize = 18.sp)
+                    Text("Sign in with Google", color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
                         text = "Sign in to activate Google Cloud Firestore storage for your logs.",
-                        color = Color.LightGray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 13.sp
                     )
                     OutlinedTextField(
@@ -447,10 +457,14 @@ fun LoginScreen(
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedBorderColor = DarkBorder,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                             focusedBorderColor = Color(0xFF4285F4),
-                            unfocusedContainerColor = DarkBg3,
-                            focusedContainerColor = DarkBg3
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            focusedLabelColor = Color(0xFF4285F4)
                         )
                     )
                     OutlinedTextField(
@@ -460,10 +474,14 @@ fun LoginScreen(
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedBorderColor = DarkBorder,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                             focusedBorderColor = Color(0xFF4285F4),
-                            unfocusedContainerColor = DarkBg3,
-                            focusedContainerColor = DarkBg3
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            focusedLabelColor = Color(0xFF4285F4)
                         )
                     )
                 }
@@ -481,7 +499,7 @@ fun LoginScreen(
                             onSuccess = onLoginSuccess
                         )
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4285F4)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4285F4), contentColor = Color.White),
                     enabled = googleEmailInput.contains("@")
                 ) {
                     Text("Connect Google Cloud", color = Color.White, fontWeight = FontWeight.Bold)
@@ -489,7 +507,7 @@ fun LoginScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showGoogleDialog = false }) {
-                    Text("Cancel", color = Color.Gray)
+                    Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         )
