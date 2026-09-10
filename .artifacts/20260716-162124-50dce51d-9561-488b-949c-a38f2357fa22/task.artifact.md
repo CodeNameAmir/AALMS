@@ -1,0 +1,22 @@
+# Task Management
+
+- [x] Research existing Go-based Log Management System
+- [x] Design and Plan Android Implementation
+	- [x] Identify core features and models
+	- [x] Create Implementation Plan
+	- [x] Get User Approval
+- [x] Initial Implementation (Basic Logs, Categories, Stats)
+- [x] Advanced Features & Fixes
+	- [x] Fix UI Flickering
+	- [x] Update App Icon
+	- [x] Implement File Uploads (UI + Storage)
+	- [x] Implement Background HTTP Server (Ktor Service)
+		- [x] Setup Ktor Service & Notification
+		- [x] Implement Web API (REST)
+		- [x] Serve Web UI (Basic version)
+	- [x] Implement Authentication (Login/Register)
+	- [x] Implement Turso DB Integration (Structure/Stubs)
+	- [x] Multi-user support in Data Layer
+- [x] Verification and Testing
+	- [x] Final Build Check
+	- [x] Create Walkthrough

@@ -1,0 +1,6 @@
+package com.example.myapplication.util
+
+object Constants {
+    const val TURSO_URL = "libsql://test-codenameamir.aws-ap-northeast-1.turso.io"
+    const val TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJnaWQiOiIwZWNlN2NiMS0yYzliLTQwNWUtOTBmNi1mMjE5ZGExMDQ1MjQiLCJpYXQiOjE3ODMxNjM1OTIsImtpZCI6IjBzNTZfOGFGa3l3Q0tKX09nbG5WejFNdTUzQWp3TWRIdERZUmQtbkJHQjQiLCJyaWQiOiJmNjM0NjI3Yi1iNzBkLTQ1NWEtYTc0Yi02NDk2Njc2Y2U0ZDUifQ.F5XJjdcIRLHGsmmiKhZ3wZFZeKrv5yb8SKXDSEkDDP6G1ql1Tj1PSyTzBx3fk50RJdZK5MzzCxKIXaRyFgmaBw"
+}

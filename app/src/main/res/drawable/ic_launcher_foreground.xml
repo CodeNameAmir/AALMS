@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Outer bark/rough edge -->
+    <path
+        android:fillColor="#3E2723"
+        android:pathData="M54,4C29.7,4 10,23.7 10,48s19.7,44 44,44 44,-19.7 44,-44S78.3,4 54,4z" />
+
+    <!-- Growth rings - simulated with concentric strokes to match the new image -->
+    <path
+        android:strokeColor="#5D4037"
+        android:strokeWidth="1"
+        android:pathData="M54,12 A36,36 0 1,1 54,84 A36,36 0 1,1 54,12" />
+    <path
+        android:strokeColor="#795548"
+        android:strokeWidth="0.8"
+        android:pathData="M54,18 A30,30 0 1,1 54,78 A30,30 0 1,1 54,18" />
+    <path
+        android:strokeColor="#5D4037"
+        android:strokeWidth="0.8"
+        android:pathData="M54,24 A24,24 0 1,1 54,72 A24,24 0 1,1 54,24" />
+    <path
+        android:strokeColor="#8D6E63"
+        android:strokeWidth="0.6"
+        android:pathData="M54,30 A18,18 0 1,1 54,66 A18,18 0 1,1 54,30" />
+    <path
+        android:strokeColor="#5D4037"
+        android:strokeWidth="0.6"
+        android:pathData="M54,36 A12,12 0 1,1 54,60 A12,12 0 1,1 54,36" />
+    <path
+        android:strokeColor="#A1887F"
+        android:strokeWidth="0.5"
+        android:pathData="M54,42 A6,6 0 1,1 54,54 A6,6 0 1,1 54,42" />
+
+    <!-- Central core -->
+    <path
+        android:fillColor="#3E2723"
+        android:pathData="M54,46 A2,2 0 1,1 54,50 A2,2 0 1,1 54,46" />
+
+    <!-- Fine radial cracks like in the image -->
+    <path
+        android:strokeColor="#212121"
+        android:strokeWidth="0.3"
+        android:pathData="M54,48 L54,15 M54,48 L75,30 M54,48 L85,48 M54,48 L70,70 M54,48 L54,85 M54,48 L30,70 M54,48 L15,48 M54,48 L30,30" />
+</vector>

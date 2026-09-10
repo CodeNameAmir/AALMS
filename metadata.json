@@ -1,0 +1,6 @@
+{
+  "name": "Log Manager",
+  "description": "Android log management system with Google Account sign-in, Google Cloud database (Firestore) synchronization, offline SQLite storage, and web viewer",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
