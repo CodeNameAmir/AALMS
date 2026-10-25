@@ -50,6 +50,7 @@ fun LoginScreen(
     var showGoogleDialog by remember { mutableStateOf(false) }
     var googleEmailInput by remember { mutableStateOf("amir.mohammad.salimi.helli@gmail.com") }
     var googleNameInput by remember { mutableStateOf("Amir Mohammad") }
+    var googleUsernameInput by remember { mutableStateOf("") }
 
     val currentDbMode by viewModel.databaseMode.collectAsState()
     val loading by viewModel.loading.collectAsState()
@@ -77,6 +78,7 @@ fun LoginScreen(
                         displayName = account.displayName,
                         photoUrl = account.photoUrl?.toString(),
                         preferCloudDb = (currentDbMode == DatabaseMode.GOOGLE_CLOUD),
+                        customUsername = null,
                         onSuccess = onLoginSuccess
                     )
                     return@rememberLauncherForActivityResult
@@ -151,13 +153,13 @@ fun LoginScreen(
                     )
                     Surface(
                         shape = RoundedCornerShape(999.dp),
-                        color = if (currentDbMode == DatabaseMode.GOOGLE_CLOUD) Color(0xFF10B981).copy(alpha = 0.15f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                     ) {
                         Text(
                             text = if (currentDbMode == DatabaseMode.GOOGLE_CLOUD) "Cloud Active" else "Offline Ready",
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (currentDbMode == DatabaseMode.GOOGLE_CLOUD) Color(0xFF34D399) else MaterialTheme.colorScheme.primary,
+                            color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
                         )
                     }
@@ -211,10 +213,10 @@ fun LoginScreen(
                         onClick = { viewModel.setDatabaseMode(DatabaseMode.GOOGLE_CLOUD) },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
-                        color = if (isCloud) Color(0xFF10B981).copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant,
+                        color = if (isCloud) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f) else MaterialTheme.colorScheme.surfaceVariant,
                         border = BorderStroke(
                             if (isCloud) 1.5.dp else 1.dp,
-                            if (isCloud) Color(0xFF10B981) else MaterialTheme.colorScheme.outline
+                            if (isCloud) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
                         )
                     ) {
                         Row(
@@ -226,7 +228,7 @@ fun LoginScreen(
                                 imageVector = Icons.Default.CloudDone,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp),
-                                tint = if (isCloud) Color(0xFF34D399) else MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = if (isCloud) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Column {
@@ -446,7 +448,7 @@ fun LoginScreen(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        text = "Sign in to activate Google Cloud Firestore storage for your logs.",
+                        text = "Sign in directly with Google — no password required! If this Google account is already linked to a username, you will be signed into it automatically.",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 13.sp
                     )
@@ -468,9 +470,27 @@ fun LoginScreen(
                         )
                     )
                     OutlinedTextField(
+                        value = googleUsernameInput,
+                        onValueChange = { googleUsernameInput = it },
+                        label = { Text("Link to Username (Optional)") },
+                        placeholder = { Text("e.g. amir (or leave empty)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                            focusedBorderColor = Color(0xFF4285F4),
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            focusedLabelColor = Color(0xFF4285F4)
+                        )
+                    )
+                    OutlinedTextField(
                         value = googleNameInput,
                         onValueChange = { googleNameInput = it },
-                        label = { Text("Display Name") },
+                        label = { Text("Display Name (Optional)") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
@@ -493,16 +513,17 @@ fun LoginScreen(
                         viewModel.loginWithGoogle(
                             idToken = null,
                             email = googleEmailInput.trim(),
-                            displayName = googleNameInput.trim(),
+                            displayName = googleNameInput.trim().ifEmpty { null },
                             photoUrl = null,
                             preferCloudDb = true,
+                            customUsername = googleUsernameInput.trim().ifEmpty { null },
                             onSuccess = onLoginSuccess
                         )
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4285F4), contentColor = Color.White),
                     enabled = googleEmailInput.contains("@")
                 ) {
-                    Text("Connect Google Cloud", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("Sign In (No Password)", color = Color.White, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {

@@ -45,8 +45,8 @@ fun StatsScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Surface(
                             shape = RoundedCornerShape(6.dp),
-                            color = if (databaseMode == com.example.myapplication.data.model.DatabaseMode.GOOGLE_CLOUD) Color(0xFF10B981).copy(alpha = 0.15f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                            border = BorderStroke(1.dp, if (databaseMode == com.example.myapplication.data.model.DatabaseMode.GOOGLE_CLOUD) Color(0xFF10B981).copy(alpha = 0.3f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
                         ) {
                             Text(
                                 text = if (databaseMode == com.example.myapplication.data.model.DatabaseMode.GOOGLE_CLOUD) 
@@ -55,10 +55,7 @@ fun StatsScreen(
                                     "Local SQLite",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = if (databaseMode == com.example.myapplication.data.model.DatabaseMode.GOOGLE_CLOUD) 
-                                    Color(0xFF34D399) 
-                                else 
-                                    MaterialTheme.colorScheme.primary,
+                                color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
                             )
                         }

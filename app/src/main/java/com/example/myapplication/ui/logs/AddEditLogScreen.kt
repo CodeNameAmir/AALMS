@@ -244,13 +244,13 @@ fun AddEditLogScreen(
 
             if (attachmentPath != null) {
                 Surface(
-                    color = Color(0xFF10B981).copy(alpha = 0.15f),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
                     shape = RoundedCornerShape(6.dp),
-                    border = BorderStroke(1.dp, Color(0xFF10B981).copy(alpha = 0.3f))
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
                 ) {
                     Text(
                         text = "File: ${attachmentPath?.substringAfterLast("/")}",
-                        color = Color(0xFF34D399),
+                        color = MaterialTheme.colorScheme.primary,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)

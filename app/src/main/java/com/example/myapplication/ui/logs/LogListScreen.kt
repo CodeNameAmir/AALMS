@@ -11,8 +11,10 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -26,7 +28,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -39,6 +44,9 @@ import com.example.myapplication.data.model.LogLevel
 import com.example.myapplication.service.LogServerService
 import com.example.myapplication.ui.theme.*
 import com.example.myapplication.util.ImportExportUtils
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -62,7 +70,46 @@ fun LogListScreen(
     val context = LocalContext.current
     val databaseMode by viewModel.databaseMode.collectAsState()
     val googleUser by viewModel.googleUser.collectAsState()
+    val currentUsername by viewModel.currentUsername.collectAsState()
     var showDatabaseDialog by remember { mutableStateOf(false) }
+    var showConnectGoogleDialog by remember { mutableStateOf(false) }
+    var googleEmailInput by remember { mutableStateOf("amir.mohammad.salimi.helli@gmail.com") }
+    var googleNameInput by remember { mutableStateOf("Amir Mohammad") }
+
+    val gso = remember {
+        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .build()
+    }
+    val googleSignInClient = remember { GoogleSignIn.getClient(context, gso) }
+
+    val googleSignInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        try {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            val account = task.getResult(ApiException::class.java)
+            if (account != null) {
+                viewModel.linkGoogleAccount(
+                    idToken = account.idToken,
+                    email = account.email ?: "user@gmail.com",
+                    displayName = account.displayName,
+                    photoUrl = account.photoUrl?.toString(),
+                    preferCloudDb = true
+                ) { success, error ->
+                    if (success) {
+                        Toast.makeText(context, "Google account linked to user '${currentUsername ?: ""}'!", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(context, error ?: "Could not link Google account", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } else {
+                showConnectGoogleDialog = true
+            }
+        } catch (e: Exception) {
+            showConnectGoogleDialog = true
+        }
+    }
 
     var isServerRunning by remember { mutableStateOf(LogServerService.isRunning) }
     var showAddCategoryDialog by remember { mutableStateOf(false) }
@@ -219,17 +266,21 @@ fun LogListScreen(
                     // Option 2: Google Cloud
                     Card(
                         onClick = {
-                            viewModel.switchDatabaseMode(DatabaseMode.GOOGLE_CLOUD)
-                            showDatabaseDialog = false
+                            if (googleUser == null) {
+                                showConnectGoogleDialog = true
+                            } else {
+                                viewModel.switchDatabaseMode(DatabaseMode.GOOGLE_CLOUD)
+                                showDatabaseDialog = false
+                            }
                         },
                         colors = CardDefaults.cardColors(
                             containerColor = if (databaseMode == DatabaseMode.GOOGLE_CLOUD)
-                                Color(0xFF064E3B).copy(alpha = 0.35f)
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
                             else MaterialTheme.colorScheme.surfaceVariant
                         ),
                         border = BorderStroke(
                             1.5.dp,
-                            if (databaseMode == DatabaseMode.GOOGLE_CLOUD) Color(0xFF10B981) else MaterialTheme.colorScheme.outline
+                            if (databaseMode == DatabaseMode.GOOGLE_CLOUD) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
                         ),
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.fillMaxWidth()
@@ -241,16 +292,40 @@ fun LogListScreen(
                             RadioButton(
                                 selected = databaseMode == DatabaseMode.GOOGLE_CLOUD,
                                 onClick = {
-                                    viewModel.switchDatabaseMode(DatabaseMode.GOOGLE_CLOUD)
-                                    showDatabaseDialog = false
+                                    if (googleUser == null) {
+                                        showConnectGoogleDialog = true
+                                    } else {
+                                        viewModel.switchDatabaseMode(DatabaseMode.GOOGLE_CLOUD)
+                                        showDatabaseDialog = false
+                                    }
                                 },
-                                colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF10B981))
+                                colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Column {
+                            Column(modifier = Modifier.weight(1f)) {
                                 Text("Google Cloud (Firestore)", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
-                                val desc = if (googleUser != null) "Account: ${googleUser?.email}" else "Real-time Google Cloud Sync"
-                                Text(desc, fontSize = 11.sp, color = if (databaseMode == DatabaseMode.GOOGLE_CLOUD) Color(0xFF34D399) else MaterialTheme.colorScheme.onSurfaceVariant)
+                                val desc = if (googleUser != null) "Account: ${googleUser?.email}" else "Not connected • Tap to link Google"
+                                Text(desc, fontSize = 11.sp, color = if (googleUser != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            if (googleUser == null) {
+                                TextButton(
+                                    onClick = {
+                                        showConnectGoogleDialog = true
+                                    },
+                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+                                ) {
+                                    Text("Connect", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                }
+                            } else {
+                                TextButton(
+                                    onClick = {
+                                        viewModel.unlinkGoogleAccount()
+                                        Toast.makeText(context, "Google account unlinked", Toast.LENGTH_SHORT).show()
+                                    },
+                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+                                ) {
+                                    Text("Unlink", fontSize = 11.sp, color = MaterialTheme.colorScheme.error)
+                                }
                             }
                         }
                     }
@@ -265,24 +340,36 @@ fun LogListScreen(
                     ) {
                         OutlinedButton(
                             onClick = {
-                                viewModel.syncLocalToCloud(context)
-                                showDatabaseDialog = false
+                                if (googleUser == null) {
+                                    Toast.makeText(context, "Please connect your Google account first to sync", Toast.LENGTH_SHORT).show()
+                                    showDatabaseDialog = false
+                                    showConnectGoogleDialog = true
+                                } else {
+                                    viewModel.syncLocalToCloud(context)
+                                    showDatabaseDialog = false
+                                }
                             },
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(8.dp),
                             colors = ButtonDefaults.outlinedButtonColors(
                                 containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                contentColor = Color(0xFF34D399)
+                                contentColor = MaterialTheme.colorScheme.primary
                             ),
-                            border = BorderStroke(1.dp, Color(0xFF059669))
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
                         ) {
                             Text("Local ➔ Cloud", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         }
 
                         OutlinedButton(
                             onClick = {
-                                viewModel.syncCloudToLocal(context)
-                                showDatabaseDialog = false
+                                if (googleUser == null) {
+                                    Toast.makeText(context, "Please connect your Google account first to sync", Toast.LENGTH_SHORT).show()
+                                    showDatabaseDialog = false
+                                    showConnectGoogleDialog = true
+                                } else {
+                                    viewModel.syncCloudToLocal(context)
+                                    showDatabaseDialog = false
+                                }
                             },
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(8.dp),
@@ -300,6 +387,149 @@ fun LogListScreen(
             confirmButton = {
                 TextButton(onClick = { showDatabaseDialog = false }) {
                     Text("Done", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                }
+            }
+        )
+    }
+
+    if (showConnectGoogleDialog) {
+        AlertDialog(
+            onDismissRequest = { showConnectGoogleDialog = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFF4285F4)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("G", color = Color.White, fontWeight = FontWeight.Black, fontSize = 15.sp)
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text("Connect Google Account", color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        text = "Link a Google account to your username (${currentUsername ?: "active user"}). You'll be able to sign into this account using Google Sign-In without entering your password, and access Google Cloud Firestore.",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 13.sp
+                    )
+
+                    Button(
+                        onClick = {
+                            try {
+                                googleSignInLauncher.launch(googleSignInClient.signInIntent)
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Please enter Google email below", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(44.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        ),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFF4285F4)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("G", color = Color.White, fontWeight = FontWeight.Black, fontSize = 11.sp)
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text("Sign In with Google to Link", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outline)
+                        Text(" or enter email ", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outline)
+                    }
+
+                    OutlinedTextField(
+                        value = googleEmailInput,
+                        onValueChange = { googleEmailInput = it },
+                        label = { Text("Google Account Email") },
+                        placeholder = { Text("user@gmail.com") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface
+                        )
+                    )
+
+                    OutlinedTextField(
+                        value = googleNameInput,
+                        onValueChange = { googleNameInput = it },
+                        label = { Text("Display Name (Optional)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface
+                        )
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val email = googleEmailInput.trim()
+                        if (email.contains("@")) {
+                            showConnectGoogleDialog = false
+                            viewModel.linkGoogleAccount(
+                                idToken = null,
+                                email = email,
+                                displayName = googleNameInput.trim().ifEmpty { email.substringBefore("@") },
+                                photoUrl = null,
+                                preferCloudDb = true
+                            ) { success, error ->
+                                if (success) {
+                                    Toast.makeText(context, "Linked $email to user '${currentUsername ?: ""}'", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, error ?: "Could not link Google account", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        } else {
+                            Toast.makeText(context, "Please enter a valid email", Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = Color.White
+                    ),
+                    enabled = googleEmailInput.contains("@")
+                ) {
+                    Text("Link Google Account", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showConnectGoogleDialog = false }) {
+                    Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         )
@@ -378,6 +608,39 @@ fun LogListScreen(
                                 onClick = { 
                                     menuExpanded = false
                                     showDatabaseDialog = true
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { 
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            Icons.Default.Cloud,
+                                            contentDescription = null,
+                                            tint = if (googleUser != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Column {
+                                            Text(
+                                                text = if (googleUser != null) "Google: ${googleUser?.email}" else "Link Google Account",
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                fontSize = 14.sp
+                                            )
+                                            Text(
+                                                text = if (googleUser != null) "Connected • Tap to change" else "Enable Google Cloud Firestore",
+                                                fontSize = 10.sp,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                },
+                                onClick = { 
+                                    menuExpanded = false
+                                    if (googleUser != null) {
+                                        showDatabaseDialog = true
+                                    } else {
+                                        showConnectGoogleDialog = true
+                                    }
                                 }
                             )
                             HorizontalDivider(color = MaterialTheme.colorScheme.outline)
@@ -884,6 +1147,7 @@ fun FilterSection(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LogItem(
     logWithCat: LogWithCategory,
@@ -897,12 +1161,24 @@ fun LogItem(
     val levelColor = rememberLogLevelColor(log.level)
     val catColor = parseColor(logWithCat.categoryColor)
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
     
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 5.dp)
-            .clickable(onClick = onLogClick),
+            .clip(RoundedCornerShape(12.dp))
+            .combinedClickable(
+                onClick = onLogClick,
+                onLongClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                    val clip = android.content.ClipData.newPlainText("Log Message", log.message)
+                    clipboard.setPrimaryClip(clip)
+                    Toast.makeText(context, "Log copied to clipboard", Toast.LENGTH_SHORT).show()
+                }
+            )
+            .testTag("log_item_${log.id}"),
         shape = RoundedCornerShape(12.dp),
         border = BorderStroke(1.dp, if (log.pinned) Color(0xFFEAB308).copy(alpha = 0.5f) else MaterialTheme.colorScheme.outline),
         colors = CardDefaults.cardColors(

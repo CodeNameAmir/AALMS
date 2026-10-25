@@ -7,80 +7,116 @@
   <style>
     :root {
       --bg: #0d0d0d; --bg-2: #141414; --bg-3: #1a1a1a; --border: #2a2a2a;
-      --text: #f0f0f0; --muted: #888888; --accent: #3b82f6;
+      --text: #f0f0f0; --muted: #888888; --accent: #3b82f6; --google-blue: #4285F4;
       --radius: 8px;
     }
     body {
       margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
       background: var(--bg); color: var(--text);
-      display: flex; align-items: center; justify-content: center; height: 100vh;
+      display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; box-sizing: border-box;
     }
     .auth-card {
       background: var(--bg-2); border: 1px solid var(--border);
-      padding: 32px; border-radius: var(--radius); width: 100%; max-width: 400px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      padding: 32px; border-radius: var(--radius); width: 100%; max-width: 420px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
     }
-    .auth-header { text-align: center; margin-bottom: 24px; }
+    .auth-header { text-align: center; margin-bottom: 22px; }
     .auth-header h1 { margin: 0; font-size: 24px; font-weight: 700; }
-    .auth-header p { color: var(--muted); margin: 8px 0 0; font-size: 14px; }
+    .auth-header p { color: var(--muted); margin: 6px 0 0; font-size: 13px; }
 
-    .form-group { margin-bottom: 16px; }
-    .form-group label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--muted); }
+    .btn-google {
+      width: 100%; padding: 11px 16px; background: #ffffff; color: #1f1f1f;
+      border: 1px solid #ddd; border-radius: 6px; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      font-size: 14px; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .btn-google:hover { background: #f8f9fa; box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
+    .btn-google svg { width: 18px; height: 18px; }
+
+    .divider {
+      display: flex; align-items: center; text-align: center; margin: 20px 0 16px;
+      color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1; border-bottom: 1px solid var(--border);
+    }
+    .divider::before { margin-right: 12px; }
+    .divider::after { margin-left: 12px; }
+
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 6px; font-size: 12px; color: var(--muted); font-weight: 500; }
     .form-group input {
       width: 100%; padding: 10px 12px; background: var(--bg-3); border: 1px solid var(--border);
-      border-radius: 6px; color: var(--text); outline: none; box-sizing: border-box;
+      border-radius: 6px; color: var(--text); outline: none; box-sizing: border-box; font-size: 14px;
     }
     .form-group input:focus { border-color: var(--accent); }
+    .form-group small { display: block; color: var(--muted); font-size: 11px; margin-top: 4px; }
 
     .btn {
-      width: 100%; padding: 12px; background: var(--accent); color: white;
+      width: 100%; padding: 11px; background: var(--accent); color: white;
       border: none; border-radius: 6px; font-weight: 600; cursor: pointer;
-      transition: opacity 0.2s; font-size: 15px;
+      transition: opacity 0.2s; font-size: 14px;
     }
     .btn:hover { opacity: 0.9; }
-    .btn.secondary { background: #444; margin-top: 10px; }
 
     .auth-footer {
-      margin-top: 20px; text-align: center; font-size: 14px; color: var(--muted);
+      margin-top: 18px; text-align: center; font-size: 13px; color: var(--muted);
     }
     .auth-footer a { color: var(--accent); text-decoration: none; cursor: pointer; }
     .auth-footer a:hover { text-decoration: underline; }
 
-    .settings-btn { position: absolute; top: 20px; right: 20px; background: transparent; border: 1px solid var(--border); padding: 8px; border-radius: 50%; cursor: pointer; color: var(--muted); }
-
-    .modal {
+    .modal-backdrop {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 1000;
+      background: rgba(0,0,0,0.75); align-items: center; justify-content: center; z-index: 1000;
     }
-    .modal-content { background: var(--bg-2); padding: 24px; border-radius: var(--radius); width: 90%; max-width: 400px; }
+    .modal-backdrop.show { display: flex; }
+    .modal-box {
+      background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px;
+      padding: 24px; width: 90%; max-width: 420px; box-shadow: 0 15px 35px rgba(0,0,0,0.7);
+    }
+    .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .modal-head h3 { margin: 0; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+    .close-btn { background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; }
 
     .toast {
       position: fixed; bottom: 20px; right: 20px; padding: 12px 20px;
       border-radius: 6px; color: white; font-size: 14px; display: none;
-      animation: slideIn 0.3s ease-out; z-index: 100;
+      animation: slideIn 0.3s ease-out; z-index: 1100;
     }
     @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
     .toast.error { background: #ef4444; }
     .toast.success { background: #22c55e; }
-
-    .switch-container { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
   </style>
 </head>
 <body>
 
   <div class="auth-card" id="loginBox">
     <div class="auth-header">
-      <h1>Welcome Back</h1>
-      <p>Please enter your details to sign in</p>
+      <h1>Log Server</h1>
+      <p>High-performance logging & cross-device inspection</p>
     </div>
+
+    <!-- Passwordless Google Sign-In Button -->
+    <button type="button" class="btn-google" id="btnOpenGoogleLogin">
+      <svg viewBox="0 0 48 48">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+      </svg>
+      Continue with Google (Passwordless)
+    </button>
+
+    <div class="divider">or sign in with username</div>
+
     <form id="loginForm">
       <div class="form-group">
         <label>Username</label>
-        <input type="text" id="loginUser" required autocomplete="username">
+        <input type="text" id="loginUser" required autocomplete="username" placeholder="e.g. amir">
       </div>
       <div class="form-group">
         <label>Password</label>
-        <input type="password" id="loginPass" required autocomplete="current-password">
+        <input type="password" id="loginPass" required autocomplete="current-password" placeholder="••••••••">
       </div>
       <button type="submit" class="btn" id="loginBtn">Sign In</button>
     </form>
@@ -92,21 +128,60 @@
   <div class="auth-card" id="signupBox" style="display: none;">
     <div class="auth-header">
       <h1>Create Account</h1>
-      <p>Join us to start managing your logs</p>
+      <p>Set up a username and password to get started</p>
     </div>
     <form id="signupForm">
       <div class="form-group">
         <label>Username</label>
-        <input type="text" id="signupUser" required autocomplete="username">
+        <input type="text" id="signupUser" required autocomplete="username" placeholder="e.g. amir">
       </div>
       <div class="form-group">
         <label>Password</label>
-        <input type="password" id="signupPass" required autocomplete="new-password">
+        <input type="password" id="signupPass" required autocomplete="new-password" placeholder="••••••••">
       </div>
       <button type="submit" class="btn" id="signupBtn">Sign Up</button>
     </form>
     <div class="auth-footer">
       Already have an account? <a onclick="toggleAuth()">Sign in</a>
+    </div>
+  </div>
+
+  <!-- Google Sign-In / Account Linking Modal -->
+  <div class="modal-backdrop" id="googleLoginModal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3>
+          <svg viewBox="0 0 48 48" style="width:20px;height:20px;">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          </svg>
+          Google Sign-In
+        </h3>
+        <button class="close-btn" id="btnCloseGoogleModal">&times;</button>
+      </div>
+      <p style="font-size:13px; color:var(--muted); margin-top:0; margin-bottom:16px;">
+        No password required! If this Google account is already linked to a username, you'll sign directly into it.
+      </p>
+      <form id="googleLoginForm">
+        <div class="form-group">
+          <label>Google Account Email</label>
+          <input type="email" id="googleEmailInput" required value="amir.mohammad.salimi.helli@gmail.com" placeholder="user@gmail.com">
+        </div>
+        <div class="form-group">
+          <label>Link to Username (Optional)</label>
+          <input type="text" id="googleUsernameInput" placeholder="e.g. amir (or leave empty)">
+          <small>Leave empty to use your email handle or log into your already linked user.</small>
+        </div>
+        <div class="form-group">
+          <label>Display Name (Optional)</label>
+          <input type="text" id="googleDisplayNameInput" value="Amir Mohammad" placeholder="Your name">
+        </div>
+        <button type="submit" class="btn" id="btnSubmitGoogle" style="background:#4285F4; margin-top:8px;">
+          Sign In with Google
+        </button>
+      </form>
     </div>
   </div>
 
@@ -143,6 +218,43 @@
       if (!res.ok) throw new Error(json.error || 'Request failed');
       return json;
     }
+
+    // Google modal handling
+    const googleModal = document.getElementById('googleLoginModal');
+    document.getElementById('btnOpenGoogleLogin').onclick = () => {
+      googleModal.classList.add('show');
+    };
+    document.getElementById('btnCloseGoogleModal').onclick = () => {
+      googleModal.classList.remove('show');
+    };
+    googleModal.onclick = (e) => {
+      if (e.target === googleModal) googleModal.classList.remove('show');
+    };
+
+    document.getElementById('googleLoginForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btnSubmitGoogle');
+      btn.disabled = true;
+      btn.textContent = 'Authenticating…';
+      try {
+        const email = document.getElementById('googleEmailInput').value.trim();
+        const username = document.getElementById('googleUsernameInput').value.trim() || null;
+        const displayName = document.getElementById('googleDisplayNameInput').value.trim() || null;
+        
+        await api('/api/google-login', {
+          email: email,
+          username: username,
+          displayName: displayName,
+          preferCloudDb: true
+        });
+        showToast('Signed in successfully!', 'success');
+        setTimeout(() => { window.location.href = '/'; }, 300);
+      } catch (err) {
+        showToast(err.message);
+        btn.disabled = false;
+        btn.textContent = 'Sign In with Google';
+      }
+    };
 
     document.getElementById('loginForm').onsubmit = async (e) => {
       e.preventDefault();

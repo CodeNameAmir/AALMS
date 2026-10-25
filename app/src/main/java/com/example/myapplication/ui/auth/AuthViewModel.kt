@@ -76,23 +76,25 @@ class AuthViewModel(
         displayName: String?,
         photoUrl: String?,
         preferCloudDb: Boolean = true,
+        customUsername: String? = null,
         onSuccess: () -> Unit
     ) {
         viewModelScope.launch {
             _loading.value = true
             _error.value = null
             try {
-                val success = userManager.loginWithGoogle(
+                val (success, message) = userManager.loginWithGoogle(
                     idToken = idToken,
                     email = email,
                     displayName = displayName,
                     photoUrl = photoUrl,
-                    preferCloudDb = preferCloudDb
+                    preferCloudDb = preferCloudDb,
+                    customUsername = customUsername
                 )
                 if (success) {
                     onSuccess()
                 } else {
-                    _error.value = "Could not sign in with Google account. Please try again."
+                    _error.value = message ?: "Could not sign in with Google account. Please try again."
                 }
             } catch (e: Exception) {
                 _error.value = "Google Sign-In failed: ${e.localizedMessage ?: "Unknown error"}"

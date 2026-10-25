@@ -16,6 +16,12 @@ interface LogDao {
     @Query("SELECT * FROM users WHERE id = :id")
     suspend fun getUserById(id: Long): User?
 
+    @Query("SELECT * FROM users WHERE (googleEmail IS NOT NULL AND LOWER(googleEmail) = LOWER(:email)) OR (googleUid IS NOT NULL AND googleUid = :uid) LIMIT 1")
+    suspend fun getUserByGoogleAccount(email: String, uid: String): User?
+
+    @Query("SELECT * FROM users WHERE googleEmail IS NOT NULL AND LOWER(googleEmail) = LOWER(:email) LIMIT 1")
+    suspend fun getUserByGoogleEmail(email: String): User?
+
     @Insert
     suspend fun insertUser(user: User): Long
 

@@ -102,10 +102,35 @@ class LogViewModel(
         viewModelScope, SharingStarted.Eagerly, com.example.myapplication.data.model.DatabaseMode.LOCAL
     )
     val googleUser = userManager.googleUser.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    val currentUsername: StateFlow<String?> = userManager.currentUsername.stateIn(
+        viewModelScope, SharingStarted.Eagerly, null
+    )
 
     fun switchDatabaseMode(mode: com.example.myapplication.data.model.DatabaseMode) {
         viewModelScope.launch {
             repository.switchDatabaseMode(mode)
+        }
+    }
+
+    fun linkGoogleAccount(
+        idToken: String?,
+        email: String,
+        displayName: String?,
+        photoUrl: String?,
+        preferCloudDb: Boolean = true,
+        onComplete: (Boolean, String?) -> Unit = { _, _ -> }
+    ) {
+        viewModelScope.launch {
+            val (success, error) = userManager.linkGoogleAccount(idToken, email, displayName, photoUrl, preferCloudDb)
+            withContext(Dispatchers.Main) {
+                onComplete(success, error)
+            }
+        }
+    }
+
+    fun unlinkGoogleAccount() {
+        viewModelScope.launch {
+            userManager.unlinkGoogleAccount()
         }
     }
 

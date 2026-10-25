@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Log Server</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="/static/chart.umd.min.js"></script>
 <script>
 (function () {
   try {
@@ -689,6 +689,7 @@ tr.new-row{animation:flash .8s ease}
         <span>▼</span>
       </button>
       <div class="dropdown-menu" id="userMenu">
+        <button id="menuGoogleAccount">Google: <span id="menuGoogleStatus">Not Linked</span></button>
         <button id="menuDbMode">Database: <span id="menuDbModeLabel">Local</span></button>
         <button id="menuChangePassword">Change Password</button>
         <button id="menuTheme">Theme</button>
@@ -988,6 +989,61 @@ tr.new-row{animation:flash .8s ease}
           <button class="btn btn-sm" id="btnSyncCloudToLocal" style="flex:1">📥 Sync Cloud → Local</button>
         </div>
         <div id="syncStatusMsg" style="font-size:12px; color:var(--muted); margin-top:8px; display:none"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- GOOGLE ACCOUNT LINKING MODAL -->
+<div class="modal-backdrop" id="googleAccountModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>
+        <svg viewBox="0 0 48 48" style="width:20px;height:20px;vertical-align:middle;margin-right:6px">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        Google Account Linking
+      </h3>
+      <button class="icon-btn" data-close>&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px; color:var(--muted); margin-bottom:16px">
+        Link your Google account to your username (<strong id="gaUsernameDisplay" style="color:var(--text)"></strong>).
+        Once linked, you can log in passwordless using Google Sign-In, and sync logs to Google Cloud Firestore.
+      </p>
+
+      <div id="gaLinkedSection" class="hidden" style="background:var(--bg-3); border:1px solid var(--border); border-radius:8px; padding:16px; margin-bottom:14px">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px">
+          <span style="font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em">Linked Google Account</span>
+          <span class="badge level-INFO" style="background:rgba(34,197,94,0.15); color:#22c55e">✓ Linked</span>
+        </div>
+        <div style="font-size:15px; font-weight:600" id="gaLinkedEmail"></div>
+        <div style="font-size:12px; color:var(--muted); margin-top:2px" id="gaLinkedName"></div>
+        <div style="margin-top:14px; text-align:right">
+          <button class="btn btn-sm btn-danger" id="btnUnlinkGoogle">Unlink Google Account</button>
+        </div>
+      </div>
+
+      <div id="gaUnlinkedSection">
+        <div class="field">
+          <label>Google Account Email</label>
+          <input type="email" id="gaEmailInput" placeholder="user@gmail.com" value="amir.mohammad.salimi.helli@gmail.com">
+        </div>
+        <div class="field">
+          <label>Display Name (Optional)</label>
+          <input type="text" id="gaDisplayNameInput" placeholder="Your name" value="Amir Mohammad">
+        </div>
+        <div style="margin-top:16px">
+          <button class="btn btn-primary" id="btnLinkGoogle" style="width:100%; justify-content:center; background:#4285F4; border-color:#4285F4; color:#fff">
+            Link to Current Username
+          </button>
+        </div>
       </div>
     </div>
     <div class="modal-foot">
@@ -1505,7 +1561,7 @@ tr.new-row{animation:flash .8s ease}
           const r = await fetch('/api/logs/' + saved.id + '/attachments', { method: 'POST', body: fd });
           const j = await r.json();
           if (!r.ok) throw new Error(j.error || 'upload failed');
-          saved = j.log;
+          saved = j.log || saved;
         } catch (e) {
           toast('Attachment upload failed: ' + e.message, 'error');
           console.error('Attachment upload failed:', e);
@@ -1771,8 +1827,10 @@ tr.new-row{animation:flash .8s ease}
   // =========== Charts ===========
   const charts = {};
   let currentStatsSignature = '';
-  Chart.defaults.color = (document.documentElement.dataset.theme === 'light') ? '#666' : '#888';
-  Chart.defaults.borderColor = (document.documentElement.dataset.theme === 'light') ? '#d9d9de' : '#2a2a2a';
+  if (typeof Chart !== 'undefined') {
+    Chart.defaults.color = (document.documentElement.dataset.theme === 'light') ? '#666' : '#888';
+    Chart.defaults.borderColor = (document.documentElement.dataset.theme === 'light') ? '#d9d9de' : '#2a2a2a';
+  }
 
   function chartBorderColor() {
     return getComputedStyle(document.documentElement).getPropertyValue('--chart-border').trim() || '#1a1a1a';
@@ -1793,13 +1851,16 @@ tr.new-row{animation:flash .8s ease}
   }
 
   function renderCharts(s) {
+    if (typeof Chart === 'undefined') return;
     renderLevelChart(s);
     renderCatChart(s);
     renderDayChart(s);
   }
 
   function renderLevelChart(s) {
+    if (typeof Chart === 'undefined') return;
     const ctx = $('#chartLevel');
+    if (!ctx) return;
     const data = [s.debug || 0, s.info || 0, s.warning || 0, s.error || 0, s.critical || 0];
     const labels = ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'];
     const colors = ['#666', '#888', '#eab308', '#ef4444', '#a855f7'];
@@ -1818,7 +1879,9 @@ tr.new-row{animation:flash .8s ease}
   }
 
   function renderCatChart(s) {
+    if (typeof Chart === 'undefined') return;
     const ctx = $('#chartCat');
+    if (!ctx) return;
     const cats = s.by_category || [];
     const labels = cats.map(c => c.category_name);
     const data = cats.map(c => c.count);
@@ -1838,7 +1901,9 @@ tr.new-row{animation:flash .8s ease}
   }
 
   function renderDayChart(s) {
+    if (typeof Chart === 'undefined') return;
     const ctx = $('#chartDay');
+    if (!ctx) return;
     const days = s.by_day || [];
     const labels = days.map(d => d.day);
     const data = days.map(d => d.count);
@@ -2006,6 +2071,76 @@ tr.new-row{animation:flash .8s ease}
     window.location.href = '/login';
   });
 
+  let currentUserInfo = null;
+
+  async function loadMe() {
+    currentUserInfo = await api('/api/me');
+    $('#userName').textContent = currentUserInfo.username;
+    $('#gaUsernameDisplay').textContent = currentUserInfo.username;
+    const statusEl = $('#menuGoogleStatus');
+    if (currentUserInfo.is_google_linked) {
+      statusEl.textContent = 'Linked';
+      statusEl.style.color = '#22c55e';
+      $('#gaLinkedSection').classList.remove('hidden');
+      $('#gaUnlinkedSection').classList.add('hidden');
+      $('#gaLinkedEmail').textContent = currentUserInfo.google_email || '';
+      $('#gaLinkedName').textContent = currentUserInfo.display_name || '';
+    } else {
+      statusEl.textContent = 'Not Linked';
+      statusEl.style.color = 'var(--muted)';
+      $('#gaLinkedSection').classList.add('hidden');
+      $('#gaUnlinkedSection').classList.remove('hidden');
+    }
+  }
+
+  $('#menuGoogleAccount').addEventListener('click', () => {
+    userMenu.classList.remove('show');
+    openModal('googleAccountModal');
+  });
+
+  $('#btnLinkGoogle').addEventListener('click', async () => {
+    const btn = $('#btnLinkGoogle');
+    const email = $('#gaEmailInput').value.trim();
+    const displayName = $('#gaDisplayNameInput').value.trim() || null;
+    if (!email || !email.includes('@')) {
+      toast('Please enter a valid Google email', 'error');
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'Linking…';
+    try {
+      const res = await api('/api/link-google', {
+        method: 'POST',
+        body: JSON.stringify({ email, displayName, preferCloudDb: true })
+      });
+      toast('Google account linked to user ' + res.username + '!', 'ok');
+      await loadMe();
+      await loadDatabaseMode();
+    } catch (e) {
+      toast('Link failed: ' + e.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Link to Current Username';
+    }
+  });
+
+  $('#btnUnlinkGoogle').addEventListener('click', async () => {
+    const btn = $('#btnUnlinkGoogle');
+    btn.disabled = true;
+    btn.textContent = 'Unlinking…';
+    try {
+      await api('/api/unlink-google', { method: 'POST' });
+      toast('Google account unlinked', 'ok');
+      await loadMe();
+      await loadDatabaseMode();
+    } catch (e) {
+      toast('Unlink failed: ' + e.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Unlink Google Account';
+    }
+  });
+
   $('#menuChangePassword').addEventListener('click', () => {
     userMenu.classList.remove('show');
     openModal('passwordModal');
@@ -2040,8 +2175,10 @@ tr.new-row{animation:flash .8s ease}
     document.documentElement.dataset.theme = theme;
     localStorage.setItem('theme', theme);
     const light = theme === 'light';
-    Chart.defaults.color = light ? '#666' : '#888';
-    Chart.defaults.borderColor = light ? '#d9d9de' : '#2a2a2a';
+    if (typeof Chart !== 'undefined') {
+      Chart.defaults.color = light ? '#666' : '#888';
+      Chart.defaults.borderColor = light ? '#d9d9de' : '#2a2a2a';
+    }
     if (!$('#tabStats').classList.contains('hidden')) loadStats(true);
   }
 
@@ -2188,8 +2325,7 @@ tr.new-row{animation:flash .8s ease}
   // =========== Init ===========
   (async () => {
     try {
-      const userRes = await api('/api/me');
-      $('#userName').textContent = userRes.username;
+      await loadMe();
 
       await loadDatabaseMode();
       await loadCategories();

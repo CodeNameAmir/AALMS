@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.myapplication.data.model.Category
 import com.example.myapplication.data.model.LogEntry
@@ -11,13 +12,21 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@Database(entities = [Category::class, LogEntry::class, com.example.myapplication.data.model.User::class], version = 2, exportSchema = false)
+@Database(entities = [Category::class, LogEntry::class, com.example.myapplication.data.model.User::class], version = 3, exportSchema = false)
 abstract class LogDatabase : RoomDatabase() {
     abstract fun logDao(): LogDao
 
     companion object {
         @Volatile
         private var INSTANCE: LogDatabase? = null
+
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE users ADD COLUMN googleEmail TEXT")
+                db.execSQL("ALTER TABLE users ADD COLUMN googleUid TEXT")
+                db.execSQL("ALTER TABLE users ADD COLUMN googleDisplayName TEXT")
+            }
+        }
 
         fun getDatabase(context: Context, scope: CoroutineScope): LogDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -26,7 +35,8 @@ abstract class LogDatabase : RoomDatabase() {
                     LogDatabase::class.java,
                     "log_database"
                 )
-                    .fallbackToDestructiveMigration() // Simplified for development
+                    .addMigrations(MIGRATION_2_3)
+                    .fallbackToDestructiveMigration()
                     .addCallback(LogDatabaseCallback(scope))
                     .build()
                 INSTANCE = instance

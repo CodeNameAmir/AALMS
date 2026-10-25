@@ -143,7 +143,48 @@ data class ErrorResponse(val error: String)
 data class SuccessResponse(val success: Boolean)
 
 @Serializable
-data class MeResponse(val username: String)
+data class AttachmentUploadResponse(
+    val success: Boolean,
+    val log: LogApiResponse? = null
+)
+
+@Serializable
+data class MeResponse(
+    val username: String,
+    val google_email: String? = null,
+    val is_google_linked: Boolean = false,
+    val display_name: String? = null
+)
+
+@Serializable
+data class GoogleLoginRequest(
+    val email: String,
+    val displayName: String? = null,
+    val username: String? = null,
+    val preferCloudDb: Boolean = true
+)
+
+@Serializable
+data class GoogleLoginResponse(
+    val success: Boolean,
+    val username: String,
+    val google_email: String,
+    val is_new: Boolean = false
+)
+
+@Serializable
+data class LinkGoogleRequest(
+    val email: String,
+    val displayName: String? = null,
+    val preferCloudDb: Boolean = true
+)
+
+@Serializable
+data class LinkGoogleResponse(
+    val success: Boolean,
+    val username: String,
+    val google_email: String
+)
 
 
 class LogServerService : Service() {
@@ -268,7 +309,29 @@ class LogServerService : Service() {
                             }
                         }
 
-                        staticResources("/static", "web")
+                        get("/static/{path...}") {
+                            val relativePath = call.parameters.getAll("path")?.joinToString("/") ?: ""
+                            try {
+                                val bytes = assets.open("web/$relativePath").use { it.readBytes() }
+                                val contentType = when {
+                                    relativePath.endsWith(".js") -> ContentType("application", "javascript")
+                                    relativePath.endsWith(".css") -> ContentType.Text.CSS
+                                    relativePath.endsWith(".html") -> ContentType.Text.Html
+                                    relativePath.endsWith(".svg") -> ContentType.Image.SVG
+                                    relativePath.endsWith(".png") -> ContentType.Image.PNG
+                                    relativePath.endsWith(".jpg") || relativePath.endsWith(".jpeg") -> ContentType.Image.JPEG
+                                    relativePath.endsWith(".woff2") -> ContentType("font", "woff2")
+                                    relativePath.endsWith(".woff") -> ContentType("font", "woff")
+                                    relativePath.endsWith(".ttf") -> ContentType("font", "ttf")
+                                    relativePath.endsWith(".json") -> ContentType.Application.Json
+                                    else -> ContentType.Application.OctetStream
+                                }
+                                call.response.header(HttpHeaders.CacheControl, "public, max-age=31536000")
+                                call.respondBytes(bytes, contentType)
+                            } catch (e: Exception) {
+                                call.respond(HttpStatusCode.NotFound)
+                            }
+                        }
 
                         get("/uploads/{name}") {
                             val name = call.parameters["name"] ?: return@get
@@ -335,6 +398,122 @@ class LogServerService : Service() {
                                 }
                             }
 
+                            post("/google-login") {
+                                try {
+                                    val req = call.receive<GoogleLoginRequest>()
+                                    val email = req.email.trim()
+                                    if (!email.contains("@")) {
+                                        call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid Google email"))
+                                        return@post
+                                    }
+                                    val finalUid = "google_" + email.replace("@", "_").replace(".", "_")
+                                    
+                                    var user = logDao.getUserByGoogleAccount(email, finalUid) ?: logDao.getUserByGoogleEmail(email)
+                                    var isNew = false
+                                    
+                                    if (user == null) {
+                                        val desiredUsername = req.username?.trim()?.takeIf { it.isNotBlank() }
+                                        if (desiredUsername != null) {
+                                            val existingUser = logDao.getUserByUsername(desiredUsername)
+                                            if (existingUser != null) {
+                                                if (!existingUser.googleEmail.isNullOrBlank() && !existingUser.googleEmail.equals(email, ignoreCase = true)) {
+                                                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Username '$desiredUsername' is already linked to another Google account"))
+                                                    return@post
+                                                }
+                                                val updated = existingUser.copy(
+                                                    googleEmail = email,
+                                                    googleUid = finalUid,
+                                                    googleDisplayName = req.displayName ?: existingUser.username
+                                                )
+                                                logDao.updateUser(updated)
+                                                user = updated
+                                            } else {
+                                                val newUser = com.example.myapplication.data.model.User(
+                                                    username = desiredUsername,
+                                                    passwordHash = "",
+                                                    googleEmail = email,
+                                                    googleUid = finalUid,
+                                                    googleDisplayName = req.displayName ?: desiredUsername
+                                                )
+                                                val newId = logDao.insertUser(newUser)
+                                                user = newUser.copy(id = newId)
+                                                isNew = true
+                                            }
+                                        } else {
+                                            var candidateUsername = email.substringBefore("@").replace(".", "_")
+                                            val existingUser = logDao.getUserByUsername(candidateUsername)
+                                            if (existingUser != null) {
+                                                if (existingUser.googleEmail.isNullOrBlank() || existingUser.googleEmail.equals(email, ignoreCase = true)) {
+                                                    val updated = existingUser.copy(
+                                                        googleEmail = email,
+                                                        googleUid = finalUid,
+                                                        googleDisplayName = req.displayName ?: existingUser.username
+                                                    )
+                                                    logDao.updateUser(updated)
+                                                    user = updated
+                                                } else {
+                                                    candidateUsername = "${candidateUsername}_${(100..999).random()}"
+                                                    val newUser = com.example.myapplication.data.model.User(
+                                                        username = candidateUsername,
+                                                        passwordHash = "",
+                                                        googleEmail = email,
+                                                        googleUid = finalUid,
+                                                        googleDisplayName = req.displayName ?: candidateUsername
+                                                    )
+                                                    val newId = logDao.insertUser(newUser)
+                                                    user = newUser.copy(id = newId)
+                                                    isNew = true
+                                                }
+                                            } else {
+                                                val newUser = com.example.myapplication.data.model.User(
+                                                    username = candidateUsername,
+                                                    passwordHash = "",
+                                                    googleEmail = email,
+                                                    googleUid = finalUid,
+                                                    googleDisplayName = req.displayName ?: candidateUsername
+                                                )
+                                                val newId = logDao.insertUser(newUser)
+                                                user = newUser.copy(id = newId)
+                                                isNew = true
+                                            }
+                                        }
+                                    } else {
+                                        if (user.googleEmail != email || user.googleUid != finalUid) {
+                                            val updated = user.copy(
+                                                googleEmail = email,
+                                                googleUid = finalUid,
+                                                googleDisplayName = req.displayName ?: user.googleDisplayName ?: user.username
+                                            )
+                                            logDao.updateUser(updated)
+                                            user = updated
+                                        }
+                                    }
+                                    
+                                    val mode = if (req.preferCloudDb) "GOOGLE_CLOUD" else "LOCAL"
+                                    call.sessions.set(WebSession(userId = user.id, databaseMode = mode))
+                                    
+                                    try {
+                                        repository.userManager.loginWithGoogle(
+                                            idToken = null,
+                                            email = email,
+                                            displayName = req.displayName ?: user.username,
+                                            photoUrl = null,
+                                            preferCloudDb = req.preferCloudDb,
+                                            customUsername = user.username
+                                        )
+                                    } catch (e: Exception) { /* non-fatal */ }
+
+                                    call.respond(GoogleLoginResponse(
+                                        success = true,
+                                        username = user.username,
+                                        google_email = email,
+                                        is_new = isNew
+                                    ))
+                                } catch (e: Exception) {
+                                    call.respond(HttpStatusCode.InternalServerError, ErrorResponse(e.message ?: "Google login failed"))
+                                }
+                            }
+
                             authenticateSession {
                                 fun getCurrentMode(session: WebSession): DatabaseMode {
                                     return try {
@@ -347,7 +526,84 @@ class LogServerService : Service() {
                                 get("/me") {
                                     val session = call.sessions.get<WebSession>()!!
                                     val user = logDao.getUserById(session.userId)
-                                    call.respond(MeResponse(user?.username ?: "User #${session.userId}"))
+                                    val hasGoogle = !user?.googleEmail.isNullOrBlank()
+                                    call.respond(MeResponse(
+                                        username = user?.username ?: "User #${session.userId}",
+                                        google_email = user?.googleEmail,
+                                        is_google_linked = hasGoogle,
+                                        display_name = user?.googleDisplayName
+                                    ))
+                                }
+
+                                post("/link-google") {
+                                    val session = call.sessions.get<WebSession>()!!
+                                    try {
+                                        val req = call.receive<LinkGoogleRequest>()
+                                        val email = req.email.trim()
+                                        if (!email.contains("@")) {
+                                            call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid Google email"))
+                                            return@post
+                                        }
+                                        val existing = logDao.getUserByGoogleEmail(email)
+                                        if (existing != null && existing.id != session.userId) {
+                                            call.respond(HttpStatusCode.BadRequest, ErrorResponse("This Google account is already linked to username '${existing.username}'"))
+                                            return@post
+                                        }
+                                        val user = logDao.getUserById(session.userId)
+                                        if (user == null) {
+                                            call.respond(HttpStatusCode.NotFound, ErrorResponse("User not found"))
+                                            return@post
+                                        }
+                                        val finalUid = "google_" + email.replace("@", "_").replace(".", "_")
+                                        val updated = user.copy(
+                                            googleEmail = email,
+                                            googleUid = finalUid,
+                                            googleDisplayName = req.displayName ?: user.username
+                                        )
+                                        logDao.updateUser(updated)
+                                        
+                                        if (req.preferCloudDb) {
+                                            call.sessions.set(session.copy(databaseMode = "GOOGLE_CLOUD"))
+                                            try {
+                                                repository.switchDatabaseMode(DatabaseMode.GOOGLE_CLOUD)
+                                            } catch (e: Exception) { /* non-fatal */ }
+                                        }
+                                        try {
+                                            repository.userManager.linkGoogleAccount(
+                                                idToken = null,
+                                                email = email,
+                                                displayName = req.displayName ?: user.username,
+                                                photoUrl = null,
+                                                preferCloudDb = req.preferCloudDb
+                                            )
+                                        } catch (e: Exception) { /* non-fatal */ }
+
+                                        call.respond(LinkGoogleResponse(
+                                            success = true,
+                                            username = user.username,
+                                            google_email = email
+                                        ))
+                                    } catch (e: Exception) {
+                                        call.respond(HttpStatusCode.InternalServerError, ErrorResponse(e.message ?: "Failed to link Google account"))
+                                    }
+                                }
+
+                                post("/unlink-google") {
+                                    val session = call.sessions.get<WebSession>()!!
+                                    try {
+                                        val user = logDao.getUserById(session.userId)
+                                        if (user != null) {
+                                            logDao.updateUser(user.copy(googleEmail = null, googleUid = null, googleDisplayName = null))
+                                        }
+                                        call.sessions.set(session.copy(databaseMode = "LOCAL"))
+                                        try {
+                                            repository.switchDatabaseMode(DatabaseMode.LOCAL)
+                                            repository.userManager.unlinkGoogleAccount()
+                                        } catch (e: Exception) { /* non-fatal */ }
+                                        call.respond(SuccessResponse(true))
+                                    } catch (e: Exception) {
+                                        call.respond(HttpStatusCode.InternalServerError, ErrorResponse(e.message ?: "Failed to unlink Google account"))
+                                    }
                                 }
                                 get("/database-mode") {
                                     val session = call.sessions.get<WebSession>()!!
@@ -559,7 +815,44 @@ class LogServerService : Service() {
                                     )
                                     _logFlow.emit(apiResponse)
                                     
-                                    call.respond(mapOf("success" to true, "id" to id))
+                                    call.respond(HttpStatusCode.Created, apiResponse)
+                                }
+                                put("/logs/{id}") {
+                                    val session = call.sessions.get<WebSession>()!!
+                                    val mode = getCurrentMode(session)
+                                    val id = call.parameters["id"]?.toLongOrNull() ?: return@put
+                                    val req = call.receive<LogCreateRequest>()
+                                    val existing = repository.getLogByIdForMode(id, session.userId, mode)
+                                    if (existing != null && existing.userId == session.userId) {
+                                        val updated = existing.copy(
+                                            message = req.message,
+                                            level = req.level,
+                                            categoryId = req.category_id,
+                                            pinned = req.pinned,
+                                            updatedAt = System.currentTimeMillis()
+                                        )
+                                        repository.updateLogForMode(updated, mode)
+                                        val cat = repository.getCategoryByIdForMode(req.category_id, session.userId, mode)
+                                        val apiResponse = LogApiResponse(
+                                            id = id,
+                                            user_id = session.userId.toString(),
+                                            message = updated.message,
+                                            level = updated.level,
+                                            category_id = updated.categoryId,
+                                            category_name = cat?.name ?: "Unknown",
+                                            category_color = cat?.color ?: "#808080",
+                                            pinned = updated.pinned,
+                                            created_at = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'0000Z'", java.util.Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date(updated.createdAt)),
+                                            updated_at = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'0000Z'", java.util.Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date(updated.updatedAt)),
+                                            attachment_name = updated.attachmentName,
+                                            attachment_path = updated.attachmentPath?.substringAfterLast("/"),
+                                            attachment_size = updated.attachmentSize
+                                        )
+                                        _logFlow.emit(apiResponse)
+                                        call.respond(apiResponse)
+                                    } else {
+                                        call.respond(HttpStatusCode.NotFound, ErrorResponse("Log not found"))
+                                    }
                                 }
                                 post("/logs/{id}/pin") {
                                     val session = call.sessions.get<WebSession>()!!
@@ -596,6 +889,36 @@ class LogServerService : Service() {
                                      val log = repository.getLogByIdForMode(logId, session.userId, mode)
                                      if (log != null && log.userId == session.userId) {
                                          val updatedLog = log.copy(attachmentName = fileName, attachmentPath = filePath, attachmentSize = fileSize)
+                                         repository.updateLogForMode(updatedLog, mode)
+                                         val cat = repository.getCategoryByIdForMode(updatedLog.categoryId, session.userId, mode)
+                                         val apiResp = LogApiResponse(
+                                             id = updatedLog.id,
+                                             user_id = session.userId.toString(),
+                                             message = updatedLog.message,
+                                             level = updatedLog.level,
+                                             category_id = updatedLog.categoryId,
+                                             category_name = cat?.name ?: "Unknown",
+                                             category_color = cat?.color ?: "#808080",
+                                             pinned = updatedLog.pinned,
+                                             created_at = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'0000Z'", java.util.Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date(updatedLog.createdAt)),
+                                             updated_at = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'0000Z'", java.util.Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date(updatedLog.updatedAt)),
+                                             attachment_name = updatedLog.attachmentName,
+                                             attachment_path = updatedLog.attachmentPath?.substringAfterLast("/"),
+                                             attachment_size = updatedLog.attachmentSize
+                                         )
+                                         call.respond(AttachmentUploadResponse(success = true, log = apiResp))
+                                     } else call.respond(HttpStatusCode.NotFound, ErrorResponse("Log not found"))
+                                }
+                                delete("/logs/{id}/attachments") {
+                                     val session = call.sessions.get<WebSession>()!!
+                                     val mode = getCurrentMode(session)
+                                     val logId = call.parameters["id"]?.toLongOrNull() ?: return@delete
+                                     val log = repository.getLogByIdForMode(logId, session.userId, mode)
+                                     if (log != null && log.userId == session.userId) {
+                                         if (log.attachmentPath != null) {
+                                             try { File(log.attachmentPath).delete() } catch (e: Exception) { /* ignore */ }
+                                         }
+                                         val updatedLog = log.copy(attachmentName = null, attachmentPath = null, attachmentSize = null)
                                          repository.updateLogForMode(updatedLog, mode)
                                          call.respond(SuccessResponse(true))
                                      } else call.respond(HttpStatusCode.NotFound, ErrorResponse("Log not found"))

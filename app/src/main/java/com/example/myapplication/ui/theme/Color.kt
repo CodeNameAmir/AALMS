@@ -3,45 +3,51 @@ package com.example.myapplication.ui.theme
 import androidx.compose.ui.graphics.Color
 
 // ============================================================================
-// Modern Emerald Terminal Palette: Deep Charcoal Dark & Vibrant Emerald Green
+// Modern Electric Blue Terminal Palette: Deep Charcoal Dark & Vibrant Blue
 // ============================================================================
 
-// --- Brand Accent: Vibrant Emerald Green (Developer Console Style) ---
-val EmeraldPrimary = Color(0xFF10B981)          // Emerald 500 - vibrant, high-tech, clean
-val EmeraldPrimaryLight = Color(0xFF34D399)     // Emerald 400
-val EmeraldPrimaryDark = Color(0xFF059669)      // Emerald 600
-val EmeraldPrimaryContainer = Color(0xFF064E3B)  // Deep emerald forest container
-val EmeraldOnPrimaryContainer = Color(0xFFD1FAE5)// Mint 100
-val AccentGlow = Color(0xFF10B981)
+// --- Brand Accent: Vibrant Electric Blue (Developer Console Style) ---
+val BluePrimary = Color(0xFF3B82F6)          // Blue 500 - vibrant, crisp, modern developer blue
+val BluePrimaryLight = Color(0xFF60A5FA)     // Blue 400
+val BluePrimaryDark = Color(0xFF2563EB)      // Blue 600
+val BluePrimaryContainer = Color(0xFF1E3A8A).copy(alpha = 0.5f)  // Midnight Blue container
+val BlueOnPrimaryContainer = Color(0xFFDBEAFE)// Blue 100
+val AccentGlow = Color(0xFF3B82F6)
 
 // Backward compatibility mappings so existing references work seamlessly
-val PurplePrimary = EmeraldPrimary
-val PurplePrimaryLight = EmeraldPrimaryLight
-val PurplePrimaryDark = EmeraldPrimaryDark
-val PurplePrimaryContainer = EmeraldPrimaryContainer
-val PurpleOnPrimaryContainer = EmeraldOnPrimaryContainer
+val EmeraldPrimary = BluePrimary
+val EmeraldPrimaryLight = BluePrimaryLight
+val EmeraldPrimaryDark = BluePrimaryDark
+val EmeraldPrimaryContainer = BluePrimaryContainer
+val EmeraldOnPrimaryContainer = BlueOnPrimaryContainer
+
+val PurplePrimary = BluePrimary
+val PurplePrimaryLight = BluePrimaryLight
+val PurplePrimaryDark = BluePrimaryDark
+val PurplePrimaryContainer = BluePrimaryContainer
+val PurpleOnPrimaryContainer = BlueOnPrimaryContainer
 
 // Compatibility tokens for standard M3
-val Purple80 = EmeraldPrimaryLight
-val PurpleGrey80 = Color(0xFFA7F3D0)
-val Pink80 = Color(0xFF6EE7B7)
+val Purple80 = BluePrimaryLight
+val PurpleGrey80 = Color(0xFFBFDBFE)
+val Pink80 = Color(0xFF93C5FD)
 
-val Purple40 = EmeraldPrimaryDark
-val PurpleGrey40 = Color(0xFF065F46)
-val Pink40 = Color(0xFF047857)
+val Purple40 = BluePrimaryDark
+val PurpleGrey40 = Color(0xFF1E40AF)
+val Pink40 = Color(0xFF1D4ED8)
 
-// Aliases for brand indigo (redirected to emerald)
-val BrandIndigo400 = EmeraldPrimary
-val BrandIndigo500 = EmeraldPrimaryDark
-val BrandIndigo600 = EmeraldPrimaryDark
-val BrandIndigoLight = EmeraldPrimaryLight
-val BrandIndigoContainerDark = EmeraldPrimaryContainer
-val BrandIndigoOnContainerDark = EmeraldOnPrimaryContainer
-val BrandIndigoContainerLight = Color(0xFFECFDF5)
-val BrandIndigoOnContainerLight = Color(0xFF064E3B)
+// Aliases for brand indigo (redirected to blue)
+val BrandIndigo400 = BluePrimary
+val BrandIndigo500 = BluePrimaryDark
+val BrandIndigo600 = BluePrimaryDark
+val BrandIndigoLight = BluePrimaryLight
+val BrandIndigoContainerDark = BluePrimaryContainer
+val BrandIndigoOnContainerDark = BlueOnPrimaryContainer
+val BrandIndigoContainerLight = Color(0xFFEFF6FF)
+val BrandIndigoOnContainerLight = Color(0xFF1E3A8A)
 
-val BrandViolet400 = Color(0xFF2DD4BF) // Teal 400
-val BrandViolet600 = Color(0xFF0D9488) // Teal 600
+val BrandViolet400 = Color(0xFF38BDF8) // Sky 400
+val BrandViolet600 = Color(0xFF0284C7) // Sky 600
 
 // --- Dark Theme Surfaces (True Deep Charcoal / Neutral Dark - NO Blue/Purple Tint) ---
 val DarkBg = Color(0xFF0F0F12)                 // Clean neutral deep dark canvas

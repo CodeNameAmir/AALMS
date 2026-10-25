@@ -7,6 +7,10 @@ import androidx.room.PrimaryKey
 data class User(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val username: String,
-    val passwordHash: String,
+    val passwordHash: String = "",
+    val googleEmail: String? = null,
+    val googleUid: String? = null,
+    val googleDisplayName: String? = null,
     val createdAt: Long = System.currentTimeMillis()
 )
+
